@@ -82,3 +82,6 @@ Thumbs.db
 
 # Historical screenshots stored at app roots
 /apps/sourcing-center/*.png
+
+# Generated flow image is tracked canonically under /assets
+/haitian-sourcing-flow-cartoon.png
