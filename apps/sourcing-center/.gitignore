@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+.next/
+out/
+dist/
+dist-ssr/
+build/
+coverage/
+
+# TypeScript generated files
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Local Codex workspace files
+.chat/
+.codex/
+.vercel/
+
+# Local screenshots and generated review artifacts
+/*.png
+/.playwright-cli/
+/output/playwright/

@@ -1,0 +1,84 @@
+# Environment variables and local secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.*
+
+# Build and generated output
+.next/
+**/.next/
+out/
+**/out/
+dist/
+**/dist/
+build/
+**/build/
+coverage/
+**/coverage/
+*.tsbuildinfo
+
+# Logs and runtime state
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.pid
+.runtime/
+**/.runtime/
+
+# Playwright and test artifacts
+.playwright-cli/
+**/.playwright-cli/
+playwright-report/
+**/playwright-report/
+test-results/
+**/test-results/
+blob-report/
+**/blob-report/
+playwright/.auth/
+**/playwright/.auth/
+*.storage-state.json
+output/
+**/output/
+
+# Local tools and platform metadata
+.chat/
+**/.chat/
+.codex/
+**/.codex/
+.vercel/
+**/.vercel/
+
+# Local databases and dumps (SQL migrations remain tracked)
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.dump
+
+# OS and editor files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+.idea/
+**/.idea/
+.vscode/*
+!**/.vscode/extensions.json
+!**/.vscode/settings.json
+*.swp
+*~
+
+# Local migration backups and retired prototypes
+.local-history/
+.local-archive/
+
+# Historical screenshots stored at app roots
+/apps/sourcing-center/*.png

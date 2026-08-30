@@ -1,0 +1,752 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>海天集团供应链资源湖（SCROS）需求功能大纲</title>
+  </head>
+  <body>
+    <outline text="海天集团供应链资源湖（SCROS）需求功能大纲">
+      <outline text="1. 项目背景与痛点">
+        <outline text="1.1 外部环境">
+          <outline text="全球供应链重构: 从成本最优转向区域化、近岸化、多区域、多供应商网络"/>
+          <outline text="地缘政治与贸易环境不确定: 地区冲突、贸易制裁、关税壁垒、国际物流受阻常态化"/>
+          <outline text="原材料价格和供需波动加剧: 传统议价与成本核算难以及时响应市场变化"/>
+          <outline text="AI 驱动供应链效率革命: 智能预测、自动匹配、库存优化、风险预警、自动化决策成为趋势"/>
+          <outline text="一流企业对标启示: 端到端流程集成、全球协同、供应网络主动设计、数据驱动生态协同"/>
+        </outline>
+        <outline text="1.2 内部问题">
+          <outline text="供应商资源分散: 各产业、生产基地资源不互通，缺少集团统一视图"/>
+          <outline text="重复寻源严重: 类似物料重复找供应商，浪费时间、人力和沟通成本"/>
+          <outline text="决策依赖经验: 准入、核价、份额、风险判断缺少统一量化模型"/>
+          <outline text="风险预警不足: 财务、合规、舆情、地缘、原材料等风险缺少实时监控"/>
+          <outline text="柔性替代能力不足: 关键物料备用梯队和快速切换机制不完善"/>
+          <outline text="现有系统偏执行: SRM 和数据库偏信息记录，缺少价值发现、智能决策和资源统筹"/>
+        </outline>
+        <outline text="1.3 建设必要性">
+          <outline text="从经验驱动采购升级为数据驱动采购，再升级为 AI 驱动采购"/>
+          <outline text="形成集团级、跨部门、可持续演进的供应链战略操作系统"/>
+          <outline text="将供应链从成本中心转变为价值创造中心"/>
+        </outline>
+      </outline>
+      <outline text="2. 项目目标">
+        <outline text="2.1 总体目标">
+          <outline text="建设 SCROS 供应链资源操作系统"/>
+          <outline text="形成一湖、两池、三平台、六大 AI Agent 的能力架构"/>
+          <outline text="整合供应商、价格、质量、交付、产能、风险、工艺、行业、海外资源等全域数据"/>
+          <outline text="实现供应链资源共享、智能决策、风险预警、柔性调度和生态协同"/>
+        </outline>
+        <outline text="2.2 核心解决问题">
+          <outline text="资源分散: 建立唯一供应商 ID 和集团统一资源视图"/>
+          <outline text="重复寻源: 通过资源池和资源开发平台复用优质供应商"/>
+          <outline text="经验决策: 用画像、核价、份额、风险模型支撑量化决策"/>
+          <outline text="风险滞后: 建立识别、评估、应对、监控审查闭环"/>
+          <outline text="柔性不足: 建立关键物料柔性供应池和动态备用梯队"/>
+          <outline text="生态协同不足: 向核心供应商开放非敏感协同能力"/>
+        </outline>
+        <outline text="2.3 预期结果">
+          <outline text="采购效率提升: 缩短寻源周期与沟通周期"/>
+          <outline text="采购成本降低: 通过核价、份额、竞争机制和资源复用降本"/>
+          <outline text="库存成本优化: 通过产能可视、柔性调度和协同降低库存占用"/>
+          <outline text="供应链韧性增强: 提升对断供、价格波动、质量异常、交付异常的响应能力"/>
+          <outline text="管理透明可追溯: 决策过程有数据、有模型、有审计记录"/>
+          <outline text="组织能力沉淀: 将采购经验、评估逻辑、核价规则和风险策略系统化"/>
+        </outline>
+      </outline>
+      <outline text="3. 总体功能架构">
+        <outline text="3.1 一湖: 供应链资源湖">
+          <outline text="集团统一数据底座"/>
+          <outline text="统一供应商主数据和唯一供应商 ID"/>
+          <outline text="沉淀价格、质量、交付、产能、风险、工艺、行业等数据资产"/>
+        </outline>
+        <outline text="3.2 两池: 统筹资源池与柔性供应池">
+          <outline text="统筹资源池: 集团供应商超市，支持共享、分类、调用、复用"/>
+          <outline text="柔性供应池: 关键物料备用梯队，支持风险触发和快速切换"/>
+        </outline>
+        <outline text="3.3 三平台: 能力构建核心引擎">
+          <outline text="资源开发平台: AI 寻源、产业集群地图、供应商准入认证"/>
+          <outline text="数据治理平台: 数据集成、清洗、标准化、主数据管理、质量监控"/>
+          <outline text="智能决策平台: 模型、算法、评分、核价、份额、风险、Agent 编排"/>
+        </outline>
+        <outline text="3.4 六大 AI Agent">
+          <outline text="寻源 Agent"/>
+          <outline text="核价 Agent"/>
+          <outline text="画像 Agent"/>
+          <outline text="份额 Agent"/>
+          <outline text="风险 Agent"/>
+          <outline text="调度 Agent"/>
+        </outline>
+        <outline text="3.5 业务闭环">
+          <outline text="数据采集"/>
+          <outline text="数据治理"/>
+          <outline text="模型分析"/>
+          <outline text="策略输出"/>
+          <outline text="人工确认"/>
+          <outline text="业务执行"/>
+          <outline text="结果回写"/>
+          <outline text="模型持续优化"/>
+        </outline>
+      </outline>
+      <outline text="4. 一湖: 供应链资源湖功能">
+        <outline text="4.1 供应商基础信息库">
+          <outline text="供应商名称、统一社会信用代码、组织架构、联系人、地址"/>
+          <outline text="资质、认证、历史合作关系、所属产业链环节"/>
+          <outline text="统一供应商 ID、别名合并、重复供应商识别"/>
+        </outline>
+        <outline text="4.2 价格与询价数据库">
+          <outline text="历史采购价格"/>
+          <outline text="询价记录和报价记录"/>
+          <outline text="合同价格"/>
+          <outline text="价格变化趋势"/>
+          <outline text="原材料价格关联关系"/>
+        </outline>
+        <outline text="4.3 质量数据库">
+          <outline text="来料检验数据"/>
+          <outline text="生产过程质量数据"/>
+          <outline text="售后反馈数据"/>
+          <outline text="质量异常与整改记录"/>
+          <outline text="质量体系认证记录"/>
+        </outline>
+        <outline text="4.4 交付数据库">
+          <outline text="准时交付率"/>
+          <outline text="交付周期"/>
+          <outline text="订单履约率"/>
+          <outline text="延期记录"/>
+          <outline text="响应速度和售后服务响应"/>
+        </outline>
+        <outline text="4.5 产能数据库">
+          <outline text="产能规模"/>
+          <outline text="设备情况"/>
+          <outline text="设备利用率"/>
+          <outline text="扩产能力"/>
+          <outline text="可切换产线"/>
+          <outline text="产能瓶颈"/>
+        </outline>
+        <outline text="4.6 风险数据库">
+          <outline text="财务信用"/>
+          <outline text="法律涉诉"/>
+          <outline text="经营异常"/>
+          <outline text="合规风险"/>
+          <outline text="舆情风险"/>
+          <outline text="地区风险和政策风险"/>
+        </outline>
+        <outline text="4.7 工艺与技术数据库">
+          <outline text="标准工艺路线"/>
+          <outline text="关键工艺参数"/>
+          <outline text="技术规范"/>
+          <outline text="物料特征"/>
+          <outline text="生产难点"/>
+          <outline text="技术能力要求"/>
+        </outline>
+        <outline text="4.8 行业、市场与海外资源数据库">
+          <outline text="宏观经济"/>
+          <outline text="行业政策"/>
+          <outline text="产业集群"/>
+          <outline text="市场供需"/>
+          <outline text="技术发展趋势"/>
+          <outline text="海外供应商资源"/>
+        </outline>
+        <outline text="4.9 数据资产沉淀">
+          <outline text="动态价格曲线"/>
+          <outline text="供应商画像"/>
+          <outline text="质量档案"/>
+          <outline text="交付绩效"/>
+          <outline text="风险标签"/>
+          <outline text="产能能力"/>
+          <outline text="工艺路线"/>
+        </outline>
+      </outline>
+      <outline text="5. 两池功能">
+        <outline text="5.1 统筹资源池">
+          <outline text="目标: 建成集团供应商超市，实现优质资源共享复用"/>
+          <outline text="供应商分类分层">
+            <outline text="物料类别"/>
+            <outline text="工艺能力"/>
+            <outline text="区域"/>
+            <outline text="认证状态"/>
+            <outline text="战略等级"/>
+            <outline text="风险等级"/>
+            <outline text="合作状态"/>
+          </outline>
+          <outline text="资源可见与权限控制">
+            <outline text="集团、产业、基地、部门、品类、角色多维权限"/>
+            <outline text="跨产业、跨基地、跨部门资源查询"/>
+          </outline>
+          <outline text="资源调用机制">
+            <outline text="调用申请"/>
+            <outline text="调用场景记录"/>
+            <outline text="效果反馈"/>
+            <outline text="后续合作结果沉淀"/>
+          </outline>
+          <outline text="供应商准入与退出">
+            <outline text="资质评估"/>
+            <outline text="质量体系评估"/>
+            <outline text="产能评估"/>
+            <outline text="成本评估"/>
+            <outline text="风险评估"/>
+            <outline text="整改、降级、退出机制"/>
+          </outline>
+          <outline text="资源复用评价">
+            <outline text="资源复用次数"/>
+            <outline text="跨基地共享率"/>
+            <outline text="重复寻源减少量"/>
+            <outline text="采购周期缩短情况"/>
+          </outline>
+        </outline>
+        <outline text="5.2 柔性供应池">
+          <outline text="目标: 为关键物料建立快速替代和风险响应能力"/>
+          <outline text="关键物料识别">
+            <outline text="采购金额"/>
+            <outline text="生产影响"/>
+            <outline text="供应集中度"/>
+            <outline text="替代难度"/>
+            <outline text="质量要求"/>
+            <outline text="交期敏感度"/>
+          </outline>
+          <outline text="替代供应商梯队">
+            <outline text="主供应商"/>
+            <outline text="备选供应商"/>
+            <outline text="潜在供应商"/>
+            <outline text="应急供应商"/>
+          </outline>
+          <outline text="能力匹配模型">
+            <outline text="工艺能力"/>
+            <outline text="产能规模"/>
+            <outline text="质量水平"/>
+            <outline text="交付能力"/>
+            <outline text="区域位置"/>
+            <outline text="成本结构"/>
+            <outline text="认证状态"/>
+          </outline>
+          <outline text="动态激活规则">
+            <outline text="断供风险"/>
+            <outline text="价格异常"/>
+            <outline text="质量异常"/>
+            <outline text="地缘政治风险"/>
+            <outline text="交付延期"/>
+            <outline text="需求突增"/>
+          </outline>
+          <outline text="演练与复盘">
+            <outline text="替代供应演练"/>
+            <outline text="切换周期验证"/>
+            <outline text="质量稳定性验证"/>
+            <outline text="成本影响评估"/>
+            <outline text="协同效率复盘"/>
+          </outline>
+        </outline>
+      </outline>
+      <outline text="6. 三平台功能">
+        <outline text="6.1 资源开发平台">
+          <outline text="产品与物料信息输入">
+            <outline text="规格书"/>
+            <outline text="BOM"/>
+            <outline text="材质"/>
+            <outline text="性能指标"/>
+            <outline text="质量标准"/>
+            <outline text="技术参数"/>
+          </outline>
+          <outline text="产品结构和工艺解析">
+            <outline text="关键特征提取"/>
+            <outline text="核心工序识别"/>
+            <outline text="工艺难点识别"/>
+            <outline text="能力要求抽取"/>
+          </outline>
+          <outline text="产业集群地图">
+            <outline text="物料类别"/>
+            <outline text="工艺能力"/>
+            <outline text="成本优势"/>
+            <outline text="技术优势"/>
+            <outline text="区域风险"/>
+          </outline>
+          <outline text="潜在供应商推荐">
+            <outline text="供应商画像匹配"/>
+            <outline text="行业数据匹配"/>
+            <outline text="外部资源匹配"/>
+            <outline text="历史绩效匹配"/>
+          </outline>
+          <outline text="智能寻源报告">
+            <outline text="推荐供应商列表"/>
+            <outline text="匹配理由"/>
+            <outline text="初步成本区间"/>
+            <outline text="质量与交付能力"/>
+            <outline text="供应链稳定性"/>
+            <outline text="地缘风险和合规风险"/>
+          </outline>
+        </outline>
+        <outline text="6.2 数据治理平台">
+          <outline text="数据标准体系">
+            <outline text="编码标准"/>
+            <outline text="字段标准"/>
+            <outline text="口径标准"/>
+            <outline text="质量标准"/>
+            <outline text="接口标准"/>
+            <outline text="安全标准"/>
+          </outline>
+          <outline text="主数据管理">
+            <outline text="供应商主数据"/>
+            <outline text="物料主数据"/>
+            <outline text="品类主数据"/>
+            <outline text="组织主数据"/>
+            <outline text="工艺主数据"/>
+            <outline text="合同主数据"/>
+          </outline>
+          <outline text="数据清洗规则">
+            <outline text="重复数据识别"/>
+            <outline text="缺失数据补全"/>
+            <outline text="异常值处理"/>
+            <outline text="格式错误修复"/>
+            <outline text="口径不一致处理"/>
+          </outline>
+          <outline text="数据质量看板">
+            <outline text="完整性"/>
+            <outline text="准确性"/>
+            <outline text="及时性"/>
+            <outline text="一致性"/>
+            <outline text="问题处理进度"/>
+          </outline>
+          <outline text="数据责任机制">
+            <outline text="业务责任部门"/>
+            <outline text="数据管理员"/>
+            <outline text="审批人"/>
+            <outline text="更新周期"/>
+          </outline>
+        </outline>
+        <outline text="6.3 智能决策平台">
+          <outline text="统一评分模型">
+            <outline text="价格"/>
+            <outline text="质量"/>
+            <outline text="交付"/>
+            <outline text="风险"/>
+            <outline text="产能"/>
+            <outline text="技术能力"/>
+            <outline text="战略协同"/>
+          </outline>
+          <outline text="核价模型">
+            <outline text="历史采购价格"/>
+            <outline text="原材料行情"/>
+            <outline text="工艺路线"/>
+            <outline text="BOM"/>
+            <outline text="人工成本"/>
+            <outline text="制造费用"/>
+            <outline text="市场报价"/>
+          </outline>
+          <outline text="份额分配模型">
+            <outline text="综合评分"/>
+            <outline text="业务规则"/>
+            <outline text="推荐份额比例"/>
+            <outline text="授权阈值内人工调整"/>
+          </outline>
+          <outline text="风险预警模型">
+            <outline text="单一来源"/>
+            <outline text="财务风险"/>
+            <outline text="经营异常"/>
+            <outline text="地缘政治"/>
+            <outline text="战争疫情"/>
+            <outline text="关键原材料"/>
+          </outline>
+          <outline text="决策可解释机制">
+            <outline text="关键依据"/>
+            <outline text="数据来源"/>
+            <outline text="权重"/>
+            <outline text="风险提示"/>
+            <outline text="人工干预记录"/>
+          </outline>
+          <outline text="结果回写机制">
+            <outline text="采购执行结果"/>
+            <outline text="供应商表现"/>
+            <outline text="成本节约"/>
+            <outline text="风险处置结果"/>
+            <outline text="模型优化数据"/>
+          </outline>
+        </outline>
+      </outline>
+      <outline text="7. 六大 AI Agent 功能">
+        <outline text="7.1 寻源 Agent">
+          <outline text="目标: 让优质资源主动浮现，将数周级寻源调研压缩至小时级"/>
+          <outline text="输入">
+            <outline text="产品结构"/>
+            <outline text="物料规格书"/>
+            <outline text="BOM"/>
+            <outline text="材质"/>
+            <outline text="性能指标"/>
+            <outline text="质量标准"/>
+            <outline text="工艺要求"/>
+            <outline text="技术参数"/>
+            <outline text="采购需求"/>
+          </outline>
+          <outline text="处理">
+            <outline text="产品关键特征识别"/>
+            <outline text="工艺路线解析"/>
+            <outline text="产业集群匹配"/>
+            <outline text="高匹配供应商筛选"/>
+          </outline>
+          <outline text="输出">
+            <outline text="供应商推荐列表"/>
+            <outline text="匹配理由"/>
+            <outline text="初步成本区间"/>
+            <outline text="稳定性评估"/>
+            <outline text="地缘风险评估"/>
+            <outline text="合规风险评估"/>
+          </outline>
+        </outline>
+        <outline text="7.2 核价 Agent">
+          <outline text="目标: 提升核价效率和价格判断准确性，识别价格虚高和异常报价"/>
+          <outline text="输入">
+            <outline text="BOM"/>
+            <outline text="工艺路线"/>
+            <outline text="物料规格"/>
+            <outline text="历史价格"/>
+            <outline text="询报价记录"/>
+            <outline text="原材料市场价格"/>
+            <outline text="行业行情"/>
+            <outline text="供应商成本结构"/>
+          </outline>
+          <outline text="处理">
+            <outline text="材料成本拆分"/>
+            <outline text="工艺成本拆分"/>
+            <outline text="人工和制造费用估算"/>
+            <outline text="历史价格曲线对比"/>
+            <outline text="市场行情对比"/>
+            <outline text="异常波动识别"/>
+          </outline>
+          <outline text="输出">
+            <outline text="合理成本区间"/>
+            <outline text="报价异常提示"/>
+            <outline text="价格趋势分析"/>
+            <outline text="谈判策略"/>
+            <outline text="降本建议"/>
+          </outline>
+        </outline>
+        <outline text="7.3 画像 Agent">
+          <outline text="目标: 自动生成和更新供应商 360 度画像"/>
+          <outline text="输入">
+            <outline text="供应商基础信息"/>
+            <outline text="价格数据"/>
+            <outline text="质量数据"/>
+            <outline text="交付数据"/>
+            <outline text="产能数据"/>
+            <outline text="风险数据"/>
+            <outline text="合作历史"/>
+            <outline text="外部征信和舆情数据"/>
+          </outline>
+          <outline text="处理">
+            <outline text="数据采集与清洗"/>
+            <outline text="六大画像维度评分"/>
+            <outline text="优势短板识别"/>
+            <outline text="风险标签生成"/>
+            <outline text="历史趋势分析"/>
+          </outline>
+          <outline text="输出">
+            <outline text="供应商综合画像"/>
+            <outline text="分项评分"/>
+            <outline text="风险标签"/>
+            <outline text="绩效趋势报告"/>
+            <outline text="改进建议"/>
+          </outline>
+        </outline>
+        <outline text="7.4 份额 Agent">
+          <outline text="目标: 将采购策略制定从经验驱动升级为 AI 和数据驱动"/>
+          <outline text="输入">
+            <outline text="供应商画像全景数据"/>
+            <outline text="采购需求计划"/>
+            <outline text="份额分配规则"/>
+            <outline text="业务约束"/>
+            <outline text="风险、产能、价格、交付数据"/>
+          </outline>
+          <outline text="处理">
+            <outline text="调用动态份额模型"/>
+            <outline text="计算综合评分"/>
+            <outline text="优化份额分配方案"/>
+            <outline text="评估成本节约"/>
+            <outline text="评估供应风险"/>
+            <outline text="评估执行可行性"/>
+          </outline>
+          <outline text="输出">
+            <outline text="供应商份额推荐"/>
+            <outline text="采购计划建议"/>
+            <outline text="预期成本节约分析"/>
+            <outline text="风险评估"/>
+            <outline text="调整建议"/>
+          </outline>
+        </outline>
+        <outline text="7.5 风险 Agent">
+          <outline text="目标: 实时监控、智能预警和应急方案推荐"/>
+          <outline text="输入">
+            <outline text="财务数据"/>
+            <outline text="法律和合规数据"/>
+            <outline text="舆情数据"/>
+            <outline text="采购集中度"/>
+            <outline text="地缘政治和贸易政策"/>
+            <outline text="战争疫情信息"/>
+            <outline text="关键原材料供需和价格波动"/>
+          </outline>
+          <outline text="处理">
+            <outline text="风险事件识别"/>
+            <outline text="风险趋势识别"/>
+            <outline text="风险等级计算"/>
+            <outline text="影响范围评估"/>
+            <outline text="柔性供应池替代方案匹配"/>
+            <outline text="处置建议生成"/>
+          </outline>
+          <outline text="输出">
+            <outline text="风险预警通知"/>
+            <outline text="风险等级和原因说明"/>
+            <outline text="替代供应商推荐"/>
+            <outline text="应急处置方案"/>
+            <outline text="跟踪清单"/>
+          </outline>
+        </outline>
+        <outline text="7.6 调度 Agent">
+          <outline text="目标: 支持产能、订单、供应商资源和柔性供应池动态调度"/>
+          <outline text="输入">
+            <outline text="订单需求"/>
+            <outline text="采购计划"/>
+            <outline text="供应商产能"/>
+            <outline text="交付周期"/>
+            <outline text="库存信息"/>
+            <outline text="柔性供应池资源"/>
+            <outline text="生产基地需求"/>
+          </outline>
+          <outline text="处理">
+            <outline text="供需缺口分析"/>
+            <outline text="产能瓶颈识别"/>
+            <outline text="资源切换方案推荐"/>
+            <outline text="跨地域和跨基地协同"/>
+            <outline text="成本、交期、风险影响评估"/>
+          </outline>
+          <outline text="输出">
+            <outline text="供应调度建议"/>
+            <outline text="产能预警"/>
+            <outline text="资源缺口提示"/>
+            <outline text="柔性供应激活建议"/>
+            <outline text="调度执行跟踪"/>
+            <outline text="效果复盘"/>
+          </outline>
+        </outline>
+      </outline>
+      <outline text="8. 核心业务能力">
+        <outline text="8.1 供应商 360 度画像">
+          <outline text="能力画像: 技术研发、产能规模、设备能力、扩产能力、成本结构"/>
+          <outline text="成本画像: 价格水平、全生命周期成本、价格稳定性、降本潜力"/>
+          <outline text="质量画像: 质量绩效、质量体系、来料合格率、异常处理、售后质量"/>
+          <outline text="交付画像: 准时交付率、订单完成率、交付周期、响应速度、服务能力"/>
+          <outline text="风险画像: 财务稳健性、运营可持续性、合规、诉讼、舆情"/>
+          <outline text="战略协同画像: 合作表现、战略契合度、协同意愿、创新能力、长期价值"/>
+          <outline text="画像输出">
+            <outline text="综合评分"/>
+            <outline text="分项评分"/>
+            <outline text="优势短板"/>
+            <outline text="风险和改进建议"/>
+            <outline text="历史趋势对比"/>
+          </outline>
+        </outline>
+        <outline text="8.2 风险管理体系">
+          <outline text="风险识别: 多渠道信息自动收集和甄别"/>
+          <outline text="风险评估: 概率、影响、范围、紧急程度、可替代性量化评分"/>
+          <outline text="风险应对: 整改、份额调整、启动备选、提前备货、价格锁定、合同调整"/>
+          <outline text="监控审查: 跟踪处置结果，复盘并优化规则"/>
+          <outline text="重点风险">
+            <outline text="单一来源风险"/>
+            <outline text="供应商财务风险"/>
+            <outline text="地缘政治风险"/>
+            <outline text="战争与疫情风险"/>
+            <outline text="关键原材料风险"/>
+          </outline>
+        </outline>
+        <outline text="8.3 动态份额模型">
+          <outline text="综合评分公式">
+            <outline text="价格得分 * 权重"/>
+            <outline text="质量得分 * 权重"/>
+            <outline text="交付得分 * 权重"/>
+            <outline text="风险得分 * 权重"/>
+            <outline text="产能得分 * 权重"/>
+            <outline text="战略协同得分 * 权重"/>
+          </outline>
+          <outline text="自动推荐份额: 如 6:3:1"/>
+          <outline text="季度动态重算"/>
+          <outline text="授权阈值内人工调整"/>
+          <outline text="调整原因和审批审计"/>
+          <outline text="优质供应商正向激励"/>
+        </outline>
+        <outline text="8.4 供应链生态协同">
+          <outline text="供应商协同门户"/>
+          <outline text="非敏感协同数据开放"/>
+          <outline text="供应商准入协同"/>
+          <outline text="资质维护协同"/>
+          <outline text="质量整改协同"/>
+          <outline text="交付协同"/>
+          <outline text="风险响应协同"/>
+          <outline text="绩效改进协同"/>
+          <outline text="风险共担和持续改进机制"/>
+        </outline>
+      </outline>
+      <outline text="9. 非功能与保障需求">
+        <outline text="9.1 数据安全">
+          <outline text="供应商敏感信息保护"/>
+          <outline text="价格和合同信息保护"/>
+          <outline text="财务和战略供应商信息分级授权"/>
+        </outline>
+        <outline text="9.2 权限管理">
+          <outline text="集团权限"/>
+          <outline text="产业权限"/>
+          <outline text="基地权限"/>
+          <outline text="部门权限"/>
+          <outline text="品类权限"/>
+          <outline text="角色权限"/>
+        </outline>
+        <outline text="9.3 审计追溯">
+          <outline text="模型建议记录"/>
+          <outline text="人工调整记录"/>
+          <outline text="审批意见记录"/>
+          <outline text="份额变更记录"/>
+          <outline text="风险处置记录"/>
+        </outline>
+        <outline text="9.4 模型治理">
+          <outline text="模型版本管理"/>
+          <outline text="效果评估"/>
+          <outline text="人工复核"/>
+          <outline text="异常纠偏"/>
+          <outline text="持续优化"/>
+        </outline>
+        <outline text="9.5 系统集成">
+          <outline text="采购系统"/>
+          <outline text="SRM"/>
+          <outline text="ERP"/>
+          <outline text="MES"/>
+          <outline text="质量系统"/>
+          <outline text="财务系统"/>
+          <outline text="计划系统"/>
+          <outline text="仓储系统"/>
+        </outline>
+        <outline text="9.6 可扩展性">
+          <outline text="从试点品类扩展到更多物料"/>
+          <outline text="从单基地扩展到多基地"/>
+          <outline text="从单产业扩展到多产业"/>
+          <outline text="从国内资源扩展到海外资源"/>
+        </outline>
+        <outline text="9.7 业务连续性">
+          <outline text="核心数据稳定性"/>
+          <outline text="核心模型稳定性"/>
+          <outline text="风险预警稳定性"/>
+          <outline text="调度能力稳定性"/>
+          <outline text="关键场景人工兜底"/>
+        </outline>
+      </outline>
+      <outline text="10. 项目组织与职责">
+        <outline text="项目委员会">
+          <outline text="负责人: 集团集成供应链总监或产业副总裁"/>
+          <outline text="职责: 审批总体规划、重大决策、预算和资源分配，把控战略方向"/>
+        </outline>
+        <outline text="项目管理办公室">
+          <outline text="负责人: 供应链采购部负责人"/>
+          <outline text="职责: 项目日常管理、进度跟踪、跨部门协调、计划执行"/>
+        </outline>
+        <outline text="数据治理组">
+          <outline text="负责人: IT 部门数据架构师"/>
+          <outline text="职责: 数据标准、数据质量监控、全链路数据准确一致"/>
+        </outline>
+        <outline text="资源开发组">
+          <outline text="负责人: 采购部品类采购员"/>
+          <outline text="职责: 供应商数据收集分析、产业地图、优质资源挖掘"/>
+        </outline>
+        <outline text="AI 算法组">
+          <outline text="负责人: AI 部门算法专家"/>
+          <outline text="职责: AI 算法研发、训练、优化，支撑智能决策场景"/>
+        </outline>
+        <outline text="运营调度组">
+          <outline text="负责人: 供应链计划部门负责人"/>
+          <outline text="职责: 产能状态监控、柔性调度落地、供应链响应效率提升"/>
+        </outline>
+      </outline>
+      <outline text="11. 阶段路线与 KPI">
+        <outline text="11.1 2026 年: 资源湖 1.0">
+          <outline text="主题: 标准化与资源共享"/>
+          <outline text="完成资源湖搭建"/>
+          <outline text="上线资源开发平台 V1.0"/>
+          <outline text="建立标准化数据底座"/>
+          <outline text="供应商数据清洗、标准化、统一入库"/>
+          <outline text="C 类零件和通用品类试点"/>
+          <outline text="KPI: 供应商主数据入库率达到 90%"/>
+          <outline text="KPI: 试点品类资源共享率达到 50%"/>
+          <outline text="KPI: 试点品类采购效率提升 20%"/>
+        </outline>
+        <outline text="11.2 2027 年: 资源湖 2.0">
+          <outline text="主题: 数据驱动与能力构建"/>
+          <outline text="完善八大核心数据库"/>
+          <outline text="上线供应商 360 度画像系统"/>
+          <outline text="上线动态核价模型 2.0"/>
+          <outline text="上线产能仪表盘"/>
+          <outline text="推广至集团 80% 通用物料品类"/>
+          <outline text="KPI: 核心供应商画像覆盖率大于 75%"/>
+          <outline text="KPI: 采购成本综合节约大于 2%"/>
+          <outline text="KPI: 绩效评估自动化率大于 80%"/>
+        </outline>
+        <outline text="11.3 2028 年: SCROS 3.0">
+          <outline text="主题: AI 赋能与智能决策"/>
+          <outline text="六大 AI Agent 全面上线"/>
+          <outline text="嵌入寻源、谈判、履约等核心业务流程"/>
+          <outline text="采购策略、份额分配、风险预警广泛应用 AI 决策建议"/>
+          <outline text="向核心战略供应商开放非敏感协同功能"/>
+          <outline text="KPI: AI Agent 关键业务场景渗透率大于 70%"/>
+          <outline text="KPI: 采购决策自动化与智能化程度显著提升"/>
+          <outline text="KPI: 风险应对能力与系统韧性提升大于 50%"/>
+        </outline>
+        <outline text="11.4 2030 年远景">
+          <outline text="汇聚全球优质供应商与物料资源池"/>
+          <outline text="算法匹配最优渠道，缩短寻源周期"/>
+          <outline text="大数据驱动成本核算，识别价格虚高"/>
+          <outline text="多维数据建模，精准评估履约能力"/>
+          <outline text="基于绩效动态调整供应结构"/>
+          <outline text="实时监控断供和质量风险"/>
+          <outline text="快速响应需求波动，敏捷调整计划"/>
+          <outline text="跨地域工厂信息互联，高效协同生产"/>
+          <outline text="收益: 采购成本降低 3%-5%"/>
+          <outline text="收益: 库存成本降低 15%-20%"/>
+          <outline text="收益: 人效提升超过 30%"/>
+        </outline>
+      </outline>
+      <outline text="12. 商业模式与运营机制">
+        <outline text="12.1 商业模式定位">
+          <outline text="集团内部供应链能力平台"/>
+          <outline text="价值创造系统"/>
+          <outline text="通过平台建设、数据资产、智能决策和供应商生态协同形成价值闭环"/>
+        </outline>
+        <outline text="12.2 运行机制">
+          <outline text="集团统一建设，业务单元共享调用"/>
+          <outline text="供应商进入资源池，按绩效获得机会"/>
+          <outline text="动态份额模型引入市场化竞争"/>
+          <outline text="柔性供应池形成供应链保险机制"/>
+          <outline text="供应商生态协同提升长期竞争力"/>
+        </outline>
+        <outline text="12.3 价值创造方式">
+          <outline text="降低采购成本"/>
+          <outline text="降低库存成本"/>
+          <outline text="提升采购人效"/>
+          <outline text="降低供应风险损失"/>
+          <outline text="提升管理透明度"/>
+          <outline text="沉淀组织能力"/>
+        </outline>
+        <outline text="12.4 成本投入">
+          <outline text="平台建设成本"/>
+          <outline text="数据治理成本"/>
+          <outline text="外部数据成本"/>
+          <outline text="AI 模型建设成本"/>
+          <outline text="组织变革成本"/>
+          <outline text="运营维护成本"/>
+        </outline>
+        <outline text="12.5 收益衡量">
+          <outline text="成本类: 节约金额、节约率、核价节约、异常报价识别"/>
+          <outline text="效率类: 寻源周期、采购周期、重复寻源减少、自动报告生成"/>
+          <outline text="资源类: 主数据入库率、资源共享率、调用次数、跨基地复用率"/>
+          <outline text="风险类: 单一来源下降、预警准确率、处置闭环率、替代覆盖率"/>
+          <outline text="绩效类: 准时交付率、质量合格率、绩效提升率、自动评估率"/>
+          <outline text="生态类: 协同覆盖率、整改闭环率、供应商满意度、流程线上化率"/>
+        </outline>
+        <outline text="12.6 远期延展">
+          <outline text="供应链能力中台化"/>
+          <outline text="战略供应商协同平台化"/>
+          <outline text="行业资源和数据服务能力"/>
+          <outline text="全球供应网络运营能力"/>
+        </outline>
+      </outline>
+    </outline>
+  </body>
+</opml>

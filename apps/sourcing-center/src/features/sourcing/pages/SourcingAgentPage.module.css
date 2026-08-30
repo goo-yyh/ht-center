@@ -1,0 +1,744 @@
+.pageRoot {
+  min-height: 100%;
+}
+
+.pageStack {
+  width: 100%;
+}
+
+.detailStack {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 12px;
+}
+
+.heroCard {
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.22), transparent 26%),
+    linear-gradient(120deg, #c90010, #e60012 54%, #ff6350);
+  box-shadow: 0 18px 38px rgba(153, 0, 12, 0.18);
+}
+
+.heroCard :global(.ant-card-body) {
+  padding: 26px 28px;
+}
+
+.heroCard h2,
+.heroCard p,
+.heroCard .eyebrow {
+  color: #fff;
+}
+
+.heroCard p {
+  max-width: 760px;
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 15px;
+}
+
+.heroContent {
+  display: flex;
+  gap: 24px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.statCard {
+  height: 100%;
+  border-color: rgba(120, 74, 45, 0.1);
+  box-shadow: 0 10px 24px rgba(70, 43, 30, 0.05);
+}
+
+.statCard :global(.ant-card-body) {
+  padding: 18px;
+}
+
+.statIcon {
+  display: grid;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  font-size: 21px;
+  border-radius: 9px;
+}
+
+.listCard,
+.conversationCard,
+.actionCard,
+.prCard {
+  border-color: rgba(120, 74, 45, 0.1);
+  box-shadow: 0 12px 28px rgba(70, 43, 30, 0.05);
+}
+
+.progressCell {
+  width: 150px;
+}
+
+.compactText {
+  font-size: 12px;
+}
+
+.nowrapText {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.wrapAnywhere {
+  overflow-wrap: anywhere;
+}
+
+.attachmentLink {
+  max-width: 100%;
+  height: auto;
+  padding-inline: 0;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.fullLoading {
+  display: grid;
+  min-height: calc(100vh - 160px);
+  place-items: center;
+}
+
+.fatalAlert {
+  margin-bottom: 16px;
+}
+
+.detailDrawer :global(.ant-spin-nested-loading),
+.detailDrawer :global(.ant-spin-container) {
+  height: 100%;
+  min-height: 0;
+}
+
+.createDrawer :global(.ant-drawer-body) {
+  background: #f8f5f1;
+}
+
+.createForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+}
+
+.createForm > * {
+  min-width: 0;
+}
+
+.fullFormItem {
+  grid-column: 1 / -1;
+}
+
+.stepPanel,
+.requestSummary {
+  position: relative;
+  background: #fff;
+  border: 1px solid rgba(120, 74, 45, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(70, 43, 30, 0.04);
+}
+
+.stepPanel {
+  padding: 10px 16px;
+}
+
+.requestSummary {
+  padding: 18px;
+}
+
+.summaryValue {
+  display: flex;
+  min-width: 0;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.summaryValue :global(.ant-tag) {
+  margin-inline-end: 0;
+}
+
+.stageGrid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.stageGrid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.stageArea {
+  min-height: 0;
+  overflow: auto;
+}
+
+.quoteStatsRow {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+.quoteProgressStack {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.quoteProgressStack > :global(.ant-space-item),
+.quoteProgressStack :global(.ant-card) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.sourcingStageArea {
+  overflow: hidden;
+}
+
+.conversationCard {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.conversationCard.conversationCard > :global(.ant-card-head) {
+  flex: 0 0 auto;
+  min-height: 48px;
+}
+
+.conversationCard.conversationCard > :global(.ant-card-body) {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.messageList {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  background:
+    radial-gradient(circle at top right, rgba(230, 0, 18, 0.06), transparent 18rem),
+    #fffaf5;
+}
+
+.agentEmpty {
+  display: grid;
+  height: 100%;
+  min-height: 250px;
+  place-items: center;
+  align-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.agentEmpty > :global(.anticon) {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 12px;
+  place-items: center;
+  color: #e60012;
+  font-size: 28px;
+  background: #fff0ed;
+  border-radius: 12px;
+}
+
+.chatMessage {
+  max-width: 86%;
+  padding: 13px 14px;
+  background: #fff;
+  border: 1px solid rgba(120, 74, 45, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(70, 43, 30, 0.04);
+}
+
+.chatMessage p {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+
+.userMessage {
+  align-self: flex-end;
+  background: #fff0ed;
+  border-color: rgba(230, 0, 18, 0.16);
+}
+
+.agentMessage {
+  align-self: flex-start;
+}
+
+.agentProcess {
+  align-self: flex-start;
+  width: fit-content;
+  min-width: min(520px, 86%);
+  max-width: 86%;
+  padding: 16px 18px 4px;
+  background: #fff;
+  border: 1px solid rgba(230, 0, 18, 0.14);
+  border-left: 3px solid #e60012;
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(70, 43, 30, 0.05);
+}
+
+.agentProcessFull {
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.agentProcessError {
+  margin-bottom: 14px;
+}
+
+.evaluationStack {
+  width: 100%;
+}
+
+.evaluationReadyAlert.evaluationReadyAlert {
+  border-color: rgba(230, 0, 18, 0.32);
+  background: linear-gradient(110deg, rgba(230, 0, 18, 0.08), rgba(230, 0, 18, 0.035));
+}
+
+.evaluationReadyAlert.evaluationReadyAlert :global(.ant-alert-icon) {
+  color: #e60012;
+}
+
+.evaluationReadyAlert :global(.ant-alert-message) {
+  color: #2b2b2b;
+}
+
+.agentProcessHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(120, 74, 45, 0.1);
+}
+
+.agentProcessIdentity {
+  display: flex;
+  min-width: 0;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.agentProcessTitleBlock {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.agentProcessTitle {
+  line-height: 1.45;
+}
+
+.agentProcessBadges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.agentProcessBadges :global(.ant-tag) {
+  margin: 0;
+}
+
+.processDuration {
+  padding-top: 2px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.actionStepHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 12px;
+  align-items: start;
+}
+
+.actionStepTitle {
+  min-width: 0;
+  line-height: 1.5;
+}
+
+.actionStatus {
+  align-self: start;
+  margin: 0;
+  font-size: 12px;
+}
+
+.agentTimeline {
+  margin: 0;
+  padding-top: 18px;
+}
+
+.agentTimeline :global(.ant-timeline-item) {
+  padding-bottom: 18px;
+}
+
+.agentTimeline :global(.ant-timeline-item-last) {
+  padding-bottom: 4px;
+}
+
+.actionStep {
+  min-width: 0;
+  padding: 0 0 4px;
+}
+
+.actionSummary {
+  display: block;
+  margin-top: 6px;
+  color: #5f514a;
+  line-height: 1.6;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.actionMeta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.actionMetric {
+  padding: 2px 8px;
+  color: #5f514a;
+  font-size: 12px;
+  line-height: 20px;
+  background: #f5f1ed;
+  border-radius: 6px;
+}
+
+.actionStartedAt {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.messageHead {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chatInput {
+  padding: 14px 16px;
+  background: #fff;
+  border-top: 1px solid rgba(120, 74, 45, 0.1);
+}
+
+.candidateResultWrap {
+  width: 100%;
+  scroll-margin-top: 12px;
+}
+
+.candidateResultCard {
+  width: 100%;
+  overflow: hidden;
+  border-color: rgba(47, 143, 70, 0.2);
+  box-shadow: 0 10px 24px rgba(70, 43, 30, 0.06);
+}
+
+.candidateResultCard.candidateResultCard :global(.ant-card-head) {
+  background: linear-gradient(90deg, rgba(47, 143, 70, 0.06), #fff);
+}
+
+.candidateResultCard.candidateResultCard :global(.ant-card-body) {
+  padding: 0;
+}
+
+@media (min-width: 721px) {
+  .detailDrawer.detailDrawer:global(.ant-drawer-content) {
+    overflow: hidden;
+  }
+
+  .detailDrawer.detailDrawer:global(.ant-drawer-content) > :global(.ant-drawer-body) {
+    min-height: 0;
+    padding: 16px;
+    overflow: hidden;
+    background: #f8f5f1;
+  }
+}
+
+.resultIcon {
+  color: #2f8f46;
+}
+
+.rankBadge,
+.rankPlain {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  font-weight: 800;
+  border-radius: 50%;
+}
+
+.rankBadge {
+  color: #fff;
+  background: #e60012;
+  box-shadow: 0 6px 14px rgba(230, 0, 18, 0.2);
+}
+
+.rankPlain {
+  color: #5f514a;
+  background: #f5eee9;
+}
+
+.tableFootnote {
+  margin: 16px 0 0;
+}
+
+.scoreDetailButton {
+  height: auto;
+  padding: 0;
+  color: #e60012;
+  font-weight: 800;
+}
+
+.scoreDetailButton:focus-visible {
+  outline: 2px solid rgba(230, 0, 18, 0.45);
+  outline-offset: 3px;
+}
+
+.prCard {
+  width: min(820px, 100%);
+  margin-inline: auto;
+  text-align: left;
+}
+
+.prResult :global(.ant-result-extra) {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 1100px) {
+  .heroContent {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stageGrid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+@media (max-width: 720px) {
+  .quoteStageAlert.quoteStageAlert {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .quoteStageAlert :global(.ant-alert-content) {
+    min-width: 0;
+  }
+
+  .quoteStageAlert :global(.ant-alert-action) {
+    width: calc(100% - 32px);
+    margin-inline-start: 32px;
+    padding-top: 12px;
+  }
+
+  .quoteStageAlert :global(.ant-alert-action .ant-space) {
+    display: flex;
+    width: 100%;
+  }
+
+  .quoteStageAlert :global(.ant-alert-action .ant-btn) {
+    flex: 1;
+    min-width: 0;
+    height: auto;
+    white-space: normal;
+  }
+
+  .heroCard :global(.ant-card-body) {
+    padding: 20px;
+  }
+
+  .heroCard h2 {
+    font-size: 23px;
+  }
+
+  .stepPanel {
+    overflow-x: auto;
+    padding: 10px 12px;
+  }
+
+  .stepPanel :global(.ant-steps) {
+    min-width: 560px;
+  }
+
+  .detailDrawer.detailDrawer:global(.ant-drawer-content) > :global(.ant-drawer-body) {
+    padding: 12px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .detailStack {
+    height: auto;
+    min-height: 100%;
+    grid-template-rows: auto auto minmax(520px, 1fr);
+  }
+
+  .stageArea {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 520px;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  .stageGrid {
+    height: min(72vh, 680px);
+    min-height: 520px;
+  }
+
+  .detailDrawer :global(.ant-drawer-header-title),
+  .detailDrawer :global(.ant-drawer-title) {
+    min-width: 0;
+  }
+
+  .detailDrawer :global(.ant-drawer-title) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .detailDrawer :global(.ant-card-head-wrapper) {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .detailDrawer :global(.ant-card-head-title),
+  .detailDrawer :global(.ant-card-extra) {
+    width: 100%;
+    min-width: 0;
+    margin-inline-start: 0;
+    white-space: normal;
+  }
+
+  .detailDrawer :global(.ant-card-extra .ant-btn) {
+    max-width: 100%;
+    height: auto;
+    white-space: normal;
+  }
+
+  .createForm {
+    grid-template-columns: 1fr;
+  }
+
+  .fullFormItem {
+    grid-column: auto;
+  }
+
+  .createDrawer :global(.ant-drawer-header) {
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .createDrawer :global(.ant-drawer-header-title),
+  .createDrawer :global(.ant-drawer-extra) {
+    width: 100%;
+    min-width: 0;
+    margin-inline-start: 0;
+  }
+
+  .createDrawer :global(.ant-drawer-extra .ant-space) {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .requestSummary {
+    padding: 14px;
+  }
+
+  .chatMessage {
+    max-width: 96%;
+  }
+
+  .agentProcess {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 14px 14px 2px;
+  }
+
+  .agentProcessHead {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .processDuration {
+    justify-self: start;
+  }
+
+  .conversationCard.conversationCard > :global(.ant-card-body) {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .requestSummary :global(.ant-descriptions-view),
+  .requestSummary :global(.ant-descriptions-view table) {
+    width: 100% !important;
+    min-width: 0;
+  }
+
+  .requestSummary.requestSummary :global(.ant-descriptions-view table) {
+    table-layout: fixed !important;
+  }
+
+  .requestSummary :global(.ant-descriptions-item-label) {
+    width: 96px;
+    min-width: 96px;
+    white-space: nowrap;
+  }
+
+  .requestSummary :global(.ant-descriptions-item-content) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .actionStepHead {
+    grid-template-columns: 1fr;
+    row-gap: 6px;
+  }
+
+  .actionStatus {
+    justify-self: start;
+  }
+}

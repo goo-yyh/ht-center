@@ -1,0 +1,15 @@
+{
+  "name": "haitian-sourcing-demo-workspace",
+  "private": true,
+  "scripts": {
+    "install:all": "bash scripts/install-all.sh",
+    "demo:prepare": "bash scripts/demo-prepare.sh",
+    "dev": "bash scripts/dev-all.sh",
+    "stop": "bash scripts/stop-all.sh",
+    "test:e2e": "playwright test",
+    "verify": "bash scripts/verify-all.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}

@@ -1,0 +1,94 @@
+:root {
+  --ht-color-primary: #e60012;
+  --ht-color-info: #1677ff;
+  --ht-color-success: #2f8f46;
+  --ht-color-warning: #d9822b;
+  --ht-color-text: #2b2b2b;
+  --ht-color-text-secondary: #666666;
+  --ht-color-bg-layout: #f8f5f1;
+  --ht-color-bg-sider: #fffaf5;
+  --ht-color-menu-selected-bg: #fff0f0;
+  --ht-border-radius: 8px;
+  --ht-card-border: rgba(120, 74, 45, 0.1);
+  --ht-card-shadow: 0 14px 34px rgba(70, 43, 30, 0.07);
+  --ht-primary-shadow: 0 8px 20px rgba(230, 0, 18, 0.24);
+  --ht-font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100vh;
+}
+
+body {
+  margin: 0;
+  color: var(--ht-color-text);
+  font-family: var(--ht-font-family);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.portal-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--ht-card-border);
+  box-shadow: 0 10px 28px rgba(80, 48, 32, 0.05);
+  backdrop-filter: blur(16px);
+}
+
+.portal-brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark,
+.portal-brand-mark {
+  display: grid;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 42px;
+  place-items: center;
+  color: #fff;
+  font-weight: 900;
+  line-height: 1;
+  background: var(--ht-color-primary);
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-top-color: #ffd75f;
+  border-radius: 7px;
+  box-shadow: 0 8px 20px rgba(230, 0, 18, 0.22);
+}
+
+.brand-title,
+.brand-subtitle,
+.portal-brand-title,
+.portal-brand-subtitle {
+  display: block;
+}
+
+.brand-title,
+.portal-brand-title {
+  color: #2c2521;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.brand-subtitle,
+.portal-brand-subtitle {
+  color: #8a7569;
+  font-size: 12px;
+}
