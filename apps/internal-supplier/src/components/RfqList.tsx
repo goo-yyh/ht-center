@@ -96,7 +96,7 @@ export function RfqList({ initialSession, initialRfqs, initialMeta }: RfqListPro
         <div className="page-heading">
           <div>
             <Space wrap><Typography.Title level={2}>受邀询价</Typography.Title><Tag color="red">共 {rfqs.length} 条</Tag></Space>
-            <Typography.Paragraph type="secondary">以下询价均已邀请当前内部供应商。每个询价只能提交一次正式报价，提交后不可修改或撤回。</Typography.Paragraph>
+            <Typography.Paragraph type="secondary">以下询价均已邀请当前内部供应商。首次报价后可查看竞争力，并可在截止前重新报价一次；第二次提交后锁定。</Typography.Paragraph>
           </div>
           <Button icon={<ReloadOutlined />} loading={refreshing} onClick={() => void load(true)}>刷新</Button>
         </div>

@@ -166,7 +166,7 @@ function assertExactSupplierNumbers(actual: string[], rows: CandidateRow[], tool
   const uniqueActual = [...new Set(actual)].sort();
   const expected = rows.map((row) => row.supplier_no).sort();
   if (uniqueActual.length !== actual.length || uniqueActual.length !== expected.length || uniqueActual.some((value, index) => value !== expected[index])) {
-    throw new ApiError("AGENT_OUTPUT_INVALID", `DeepSeek 调用 ${toolName} 时未原样传递全部供应商编号`, 502);
+    throw new ApiError("AGENT_OUTPUT_INVALID", `模型调用 ${toolName} 时未原样传递全部供应商编号`, 502);
   }
 }
 
@@ -555,7 +555,7 @@ export async function runSourcingAgent(requestNo: string, body: z.infer<typeof a
       ) recent ORDER BY created_at,id`, [request.id])).rows;
     const run = await one<{ id: string }>(client, `INSERT INTO agent_runs(workspace_id,request_id,run_type,status,model,prompt_version,input_snapshot) VALUES($1,$2,'SOURCING','RUNNING',$3,'sourcing-v4',$4) RETURNING id`, [ws.id, request.id, env.DEEPSEEK_MODEL, JSON.stringify({ message: parsed.message, conversation, originalStatus: request.status, intent: "PENDING", preservePreviousCandidates: true })]);
     await client.query(`INSERT INTO agent_messages(workspace_id,request_id,agent_run_id,role,content) VALUES($1,$2,$3,'USER',$4)`, [ws.id, request.id, run.id, parsed.message]);
-    const intentAction = await one<{ id: string }>(client, `INSERT INTO agent_actions(workspace_id,request_id,agent_run_id,action_type,status,summary) VALUES($1,$2,$3,'CLASSIFY_AGENT_INTENT','RUNNING','正在调用 DeepSeek 识别本轮对话意图') RETURNING id`, [ws.id, request.id, run.id]);
+    const intentAction = await one<{ id: string }>(client, `INSERT INTO agent_actions(workspace_id,request_id,agent_run_id,action_type,status,summary) VALUES($1,$2,$3,'CLASSIFY_AGENT_INTENT','RUNNING','正在调用模型识别本轮对话意图') RETURNING id`, [ws.id, request.id, run.id]);
     await event(client, ws.id, request.id, "AGENT_MESSAGE_RECEIVED", "buyer", "寻源 Agent 收到采购人员消息", { runId: run.id });
     await bumpRevision(client, ws.id);
     return {
@@ -596,7 +596,7 @@ export async function runSourcingAgent(requestNo: string, body: z.infer<typeof a
       await withTransaction(async (client) => {
         const ws = await workspace(client, true);
         await client.query(`UPDATE agent_runs SET model=$2,provider_request_id=$3,input_snapshot=input_snapshot || $4::jsonb WHERE id=$1 AND status='RUNNING'`, [setup.runId, intentResult.model, intentResult.providerRequestId, JSON.stringify({ intent, preservePreviousCandidates: preservesCandidates, routingProviderRequestId: intentResult.providerRequestId })]);
-        const updated = await client.query(`UPDATE agent_actions SET status='SUCCEEDED',summary=$4,finished_at=clock_timestamp() WHERE id=$1 AND request_id=$2 AND agent_run_id=$3 AND status='RUNNING'`, [setup.intentActionId, setup.id, setup.runId, `DeepSeek 已将本轮消息识别为 ${intent}`]);
+        const updated = await client.query(`UPDATE agent_actions SET status='SUCCEEDED',summary=$4,finished_at=clock_timestamp() WHERE id=$1 AND request_id=$2 AND agent_run_id=$3 AND status='RUNNING'`, [setup.intentActionId, setup.id, setup.runId, `模型已将本轮消息识别为 ${intent}`]);
         if (updated.rowCount !== 1) throw new ApiError("ILLEGAL_STATE_TRANSITION", "对话意图识别步骤状态无效", 409);
         await bumpRevision(client, ws.id);
       });
@@ -607,14 +607,14 @@ export async function runSourcingAgent(requestNo: string, body: z.infer<typeof a
 
     if (intent === "CONVERSATION" || intent === "OUT_OF_SCOPE") {
       const answer = asksModelIdentity(parsed.message)
-        ? `海天寻源 Agent，本轮由 DeepSeek API 的 ${intentResult.model} 模型提供能力。`
+        ? "海天寻源 Agent，本轮由已配置的模型服务提供能力。"
         : intentResult.value.answer;
       await withTransaction(async (client) => {
         const ws = await workspace(client, true);
         const updated = await client.query(`UPDATE agent_runs SET status='SUCCEEDED',output_hash=$2,finished_at=clock_timestamp() WHERE id=$1 AND status='RUNNING'`, [setup.runId, stableHash({ intent, answer })]);
         if (updated.rowCount !== 1) throw new ApiError("ILLEGAL_STATE_TRANSITION", "对话 Agent Run 状态无效", 409);
         await client.query(`INSERT INTO agent_messages(workspace_id,request_id,agent_run_id,role,content) VALUES($1,$2,$3,'ASSISTANT',$4)`, [ws.id, setup.id, setup.runId, answer]);
-        await event(client, ws.id, setup.id, intent === "CONVERSATION" ? "AGENT_CONVERSATION_COMPLETED" : "AGENT_OUT_OF_SCOPE_ANSWERED", "agent", "真实 DeepSeek 对话答复完成", { runId: setup.runId, intent });
+        await event(client, ws.id, setup.id, intent === "CONVERSATION" ? "AGENT_CONVERSATION_COMPLETED" : "AGENT_OUT_OF_SCOPE_ANSWERED", "agent", "模型对话答复完成", { runId: setup.runId, intent });
         await bumpRevision(client, ws.id);
       });
       return getRequestDetail(requestNo);
@@ -703,50 +703,50 @@ export async function runSourcingAgent(requestNo: string, body: z.infer<typeof a
 
     const executeTool = async (call: SourcingToolCall): Promise<SourcingToolExecutionResult> => {
       if ("itemCode" in call.arguments && call.arguments.itemCode !== selection.catalog.code) {
-        throw new ApiError("AGENT_OUTPUT_INVALID", `DeepSeek 调用 ${call.name} 时修改了采购物品编码`, 502);
+        throw new ApiError("AGENT_OUTPUT_INVALID", `模型调用 ${call.name} 时修改了采购物品编码`, 502);
       }
       switch (call.name) {
         case "query_internal_suppliers":
           return executeSourceTool(
             "QUERY_INTERNAL_SUPPLIERS",
-            "DeepSeek 正在调用内部供应商系统 API",
+            "模型正在调用内部供应商系统 API",
             () => queryInternalSupplierApi(selection.catalog.code),
             (rows) => `内部供应商系统返回 ${rows.length} 家具备该物品能力的供应商`,
           );
         case "query_1688_suppliers":
           return executeSourceTool(
             "QUERY_1688_SUPPLIERS",
-            "DeepSeek 正在调用 1688 供应商检索 API",
+            "模型正在调用 1688 供应商检索 API",
             () => query1688SupplierApi(selection.catalog.code),
             (rows) => `1688 接口返回 ${rows.length} 家匹配的外部供应商`,
           );
         case "query_qichacha_suppliers":
           return executeSourceTool(
             "QUERY_QICHACHA_SUPPLIERS",
-            "DeepSeek 正在调用企查查企业信息 API",
+            "模型正在调用企查查企业信息 API",
             () => queryQichachaSupplierApi(selection.catalog.code),
             (rows) => `企查查企业信息接口返回 ${rows.length} 家匹配企业`,
           );
         case "query_industry_platform_suppliers":
           return executeSourceTool(
             "QUERY_INDUSTRY_PLATFORM_SUPPLIERS",
-            "DeepSeek 正在调用行业平台爬虫接口",
+            "模型正在调用行业平台爬虫接口",
             () => queryIndustryPlatformCrawlerApi(selection.catalog.code),
             (rows) => `行业平台爬虫接口返回 ${rows.length} 家匹配供应商`,
           );
         case "check_supplier_qualifications": {
           const sourceRows = [...sourcedCandidates.values()];
-          if (!sourceRows.length) throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 尚未查询供应商就调用了资质核验工具", 502);
+          if (!sourceRows.length) throw new ApiError("AGENT_OUTPUT_INVALID", "模型尚未查询供应商就调用了资质核验工具", 502);
           assertExactSupplierNumbers(call.arguments.supplierNos, sourceRows, call.name);
           const requested = [...new Set(call.arguments.qualificationCodes)].sort();
           const expected = [...new Set(selection.qualificationCodes)].sort();
           if (requested.length !== expected.length || requested.some((value, index) => value !== expected[index])) {
-            throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 调用资质核验工具时修改了资质要求", 502);
+            throw new ApiError("AGENT_OUTPUT_INVALID", "模型调用资质核验工具时修改了资质要求", 502);
           }
           const rows = await executeAgentAction(
             context,
             "CHECK_QUALIFICATION",
-            "DeepSeek 正在调用供应商资质核验 API",
+            "模型正在调用供应商资质核验 API",
             async () => {
               const resultRows = await checkSupplierQualificationsApi(sourceRows, selection.qualificationCodes);
               if (!resultRows.length) throw new ApiError("NOT_FOUND", "资质核验后没有符合要求的供应商", 404);
@@ -758,15 +758,15 @@ export async function runSourcingAgent(requestNo: string, body: z.infer<typeof a
           return toSourcingToolResult(`资质核验完成，${rows.length} 家供应商符合要求`, rows);
         }
         case "check_supplier_delivery": {
-          if (!toolState.qualifiedCandidates) throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 尚未完成资质核验就调用了交付核验工具", 502);
+          if (!toolState.qualifiedCandidates) throw new ApiError("AGENT_OUTPUT_INVALID", "模型尚未完成资质核验就调用了交付核验工具", 502);
           assertExactSupplierNumbers(call.arguments.supplierNos, toolState.qualifiedCandidates, call.name);
           if (call.arguments.requiredDeliveryDays !== selection.deliveryDays) {
-            throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 调用交付核验工具时修改了交付要求", 502);
+            throw new ApiError("AGENT_OUTPUT_INVALID", "模型调用交付核验工具时修改了交付要求", 502);
           }
           const result = await executeAgentAction(
             context,
             "CHECK_DELIVERY",
-            "DeepSeek 正在调用供应商交付能力核验 API",
+            "模型正在调用供应商交付能力核验 API",
             async () => {
               const eligibleRows = await checkSupplierDeliveryApi(toolState.qualifiedCandidates!, selection.deliveryDays);
               if (!eligibleRows.length) throw new ApiError("NOT_FOUND", "交付能力核验后没有符合要求的供应商", 404);
@@ -817,22 +817,22 @@ export async function runSourcingAgent(requestNo: string, body: z.infer<typeof a
         finalize: (work) => executeAgentAction(
           context,
           "ANALYZE_WITH_DEEPSEEK",
-          "DeepSeek 正在汇总工具结果并生成候选推荐",
+          "模型正在汇总工具结果并生成候选推荐",
           work,
-          (deepSeekResult) => ({ summary: `DeepSeek 已生成 ${deepSeekResult.value.candidates.length} 家候选供应商的推荐说明`, hitCount: deepSeekResult.value.candidates.length }),
+          (deepSeekResult) => ({ summary: `模型已生成 ${deepSeekResult.value.candidates.length} 家候选供应商的推荐说明`, hitCount: deepSeekResult.value.candidates.length }),
         ),
       },
     );
     const candidates = toolState.deliveryCandidates;
-    if (!candidates?.length) throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 工具调用未生成可用候选供应商", 502);
+    if (!candidates?.length) throw new ApiError("AGENT_OUTPUT_INVALID", "模型工具调用未生成可用候选供应商", 502);
     const descriptions = await executeAgentAction(
       context,
       "VALIDATE_AGENT_OUTPUT",
-      "正在校验 DeepSeek JSON 结构和供应商白名单",
+      "正在校验模型返回结构和供应商白名单",
       async () => {
         const allowed = new Set(candidates.map((candidate) => candidate.supplier_no));
         if (result.value.candidates.length !== candidates.length || result.value.candidates.some((entry) => !allowed.has(entry.supplierNo)) || new Set(result.value.candidates.map((entry) => entry.supplierNo)).size !== candidates.length) {
-          throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 候选清单与服务端白名单不一致", 502);
+          throw new ApiError("AGENT_OUTPUT_INVALID", "模型候选清单与服务端白名单不一致", 502);
         }
         return new Map(result.value.candidates.map((entry) => [entry.supplierNo, entry]));
       },
@@ -853,7 +853,7 @@ export async function runSourcingAgent(requestNo: string, body: z.infer<typeof a
         await client.query(`UPDATE agent_runs SET status='SUCCEEDED',model=$2,provider_request_id=$3,output_hash=$4,input_snapshot=input_snapshot || $5::jsonb,finished_at=clock_timestamp() WHERE id=$1`, [setup.runId, result.model, result.providerRequestId, stableHash(result.value), JSON.stringify({ toolProviderRequestIds: result.providerRequestIds ?? [] })]);
         await client.query(`INSERT INTO agent_messages(workspace_id,request_id,agent_run_id,role,content) VALUES($1,$2,$3,'ASSISTANT',$4)`, [ws.id, setup.id, setup.runId, result.value.summary]);
         await client.query(`UPDATE sourcing_requests SET status='SOURCING_READY',version=version+1,updated_at=clock_timestamp() WHERE id=$1`, [setup.id]);
-        await event(client, ws.id, setup.id, "AGENT_SOURCING_COMPLETED", "agent", "真实 DeepSeek 寻源完成", { runId: setup.runId, candidateCount: candidates.length });
+        await event(client, ws.id, setup.id, "AGENT_SOURCING_COMPLETED", "agent", "模型寻源完成", { runId: setup.runId, candidateCount: candidates.length });
         await bumpRevision(client, ws.id);
       });
     } catch (error) {
@@ -1062,10 +1062,10 @@ function evidenceBackedEvaluationNarrative(
   const strength = strengthCode === "BALANCED"
     ? `分项表现较均衡（价格 ${row.priceScore.toFixed(2)}、交期 ${row.deliveryScore.toFixed(2)}、匹配 ${row.matchScore.toFixed(2)}、风险 ${row.riskScore.toFixed(2)}）`
     : scoreEvidence[strengthCode];
-  const recommendation = `综合排名第 ${rank}/${total}，总分 ${row.totalScore.toFixed(2)}；DeepSeek 重点关注其${strength}。`;
+  const recommendation = `综合排名第 ${rank}/${total}，总分 ${row.totalScore.toFixed(2)}；模型重点关注其${strength}。`;
   const riskSummary = riskCode === "NONE"
-    ? "DeepSeek 未标记额外重点风险；采购决策仍应结合合同与履约核验。"
-    : `DeepSeek 建议重点复核${scoreEvidence[riskCode]}对应的业务条件。`;
+    ? "模型未标记额外重点风险；采购决策仍应结合合同与履约核验。"
+    : `模型建议重点复核${scoreEvidence[riskCode]}对应的业务条件。`;
   return { recommendation, riskSummary };
 }
 
@@ -1134,7 +1134,7 @@ export async function evaluateRfq(rfqNo: string) {
     const attemptCount = Number((await one<{ count: string }>(client, `SELECT count(*)::text AS count FROM evaluations WHERE rfq_id=$1`, [rfq.id])).count);
     const evaluationNo = attemptCount === 0 ? evaluationBase : `${evaluationBase}-R${attemptCount}`;
     const evaluation = await one<{ id: string }>(client, `INSERT INTO evaluations(workspace_id,evaluation_no,request_id,rfq_id,agent_run_id,strategy,status,quote_set_hash) VALUES($1,$2,$3,$4,$5,$6,'RUNNING',$7) RETURNING id`, [ws.id, evaluationNo, rfq.request_id, rfq.id, run.id, request.evaluation_strategy, quoteSetHash]);
-    await event(client, ws.id, rfq.request_id, "EVALUATION_STARTED", "buyer", "启动真实 DeepSeek 报价评估", { rfqNo, runId: run.id });
+    await event(client, ws.id, rfq.request_id, "EVALUATION_STARTED", "buyer", "启动模型报价评估", { rfqNo, runId: run.id });
     await bumpRevision(client, ws.id);
     return { existing: false as const, workspaceId: ws.id, requestId: rfq.request_id, requestNo: request.request_no, rfqId: rfq.id, evaluationId: evaluation.id, evaluationNo, runId: run.id, strategy: request.evaluation_strategy, requiredDeliveryDays: request.required_delivery_days, quoteSetHash, quotes };
   });
@@ -1203,23 +1203,23 @@ export async function evaluateRfq(rfqNo: string) {
     const result = await executeAgentAction(
       context,
       "ANALYZE_EVALUATION_WITH_DEEPSEEK",
-      `正在调用 ${env.DEEPSEEK_MODEL} 分析 Top ${scored.length} 报价的推荐理由和风险`,
+      `正在调用模型分析 Top ${scored.length} 报价的推荐理由和风险`,
       () => describeEvaluation({ rfqNo, strategy: setup.strategy, ranking: scored.map((row, index) => ({ rank: index + 1, quoteNo: row.quote_no, supplierNo: row.supplier_no, supplierName: row.supplier_name, supplierType: row.supplier_type, totalAmount: row.total_amount, deliveryDays: row.delivery_days, priceScore: row.priceScore.toFixed(2), deliveryScore: row.deliveryScore.toFixed(2), matchScore: row.matchScore.toFixed(2), riskScore: row.riskScore.toFixed(2), totalScore: row.totalScore.toFixed(2) })) }),
-      (deepSeekResult) => ({ summary: `DeepSeek 已生成 ${deepSeekResult.value.items.length} 份推荐与风险说明`, hitCount: deepSeekResult.value.items.length }),
+      (deepSeekResult) => ({ summary: `模型已生成 ${deepSeekResult.value.items.length} 份推荐与风险说明`, hitCount: deepSeekResult.value.items.length }),
       env.EVALUATION_STEP_DELAY_MS,
     );
     const descriptions = await executeAgentAction(
       context,
       "VALIDATE_EVALUATION_OUTPUT",
-      "正在校验 DeepSeek 返回的报价编号、数量和唯一性",
+      "正在校验模型返回的报价编号、数量和唯一性",
       async () => {
         const allowed = new Set(scored.map((row) => row.quote_no));
         if (result.value.items.length !== scored.length || result.value.items.some((item) => !allowed.has(item.quoteNo)) || new Set(result.value.items.map((item) => item.quoteNo)).size !== scored.length) {
-          throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 评估清单与已验证报价集合不一致", 502);
+          throw new ApiError("AGENT_OUTPUT_INVALID", "模型评估清单与已验证报价集合不一致", 502);
         }
         return new Map(result.value.items.map((item) => [item.quoteNo, item]));
       },
-      (items) => ({ summary: `DeepSeek 输出与 Top ${items.size} 报价白名单完全一致`, hitCount: items.size }),
+      (items) => ({ summary: `模型输出与 Top ${items.size} 报价白名单完全一致`, hitCount: items.size }),
       env.EVALUATION_STEP_DELAY_MS,
     );
     saveActionId = await startAgentAction(context, "SAVE_EVALUATION_RANKING", "正在原子保存评估排名并推进采购流程");
@@ -1240,11 +1240,11 @@ export async function evaluateRfq(rfqNo: string) {
       }
       await client.query(`UPDATE evaluations SET status='SUCCEEDED',completed_at=clock_timestamp() WHERE id=$1`, [setup.evaluationId]);
       await client.query(`UPDATE agent_runs SET status='SUCCEEDED',model=$2,provider_request_id=$3,output_hash=$4,finished_at=clock_timestamp() WHERE id=$1`, [setup.runId, result.model, result.providerRequestId, stableHash(result.value)]);
-      await client.query(`INSERT INTO agent_messages(workspace_id,request_id,agent_run_id,role,content) VALUES($1,$2,$3,'ASSISTANT',$4)`, [ws.id, setup.requestId, setup.runId, `DeepSeek 已完成 Top ${scored.length} 报价的关注点分析；最终排名、分数和比较结论均由服务端确定性计算。`]);
+      await client.query(`INSERT INTO agent_messages(workspace_id,request_id,agent_run_id,role,content) VALUES($1,$2,$3,'ASSISTANT',$4)`, [ws.id, setup.requestId, setup.runId, `模型已完成 Top ${scored.length} 报价的关注点分析；最终排名、分数和比较结论均由服务端确定性计算。`]);
       const actionUpdated = await client.query(`UPDATE agent_actions SET status='SUCCEEDED',hit_count=$4,summary=$5,finished_at=clock_timestamp() WHERE id=$1 AND request_id=$2 AND agent_run_id=$3 AND status='RUNNING'`, [saveActionId, setup.requestId, setup.runId, scored.length, `已保存 Top ${scored.length} 报价、Agent 建议和分项得分`]);
       if (actionUpdated.rowCount !== 1) throw new ApiError("ILLEGAL_STATE_TRANSITION", "评估结果保存步骤状态无效", 409);
       await client.query(`UPDATE sourcing_requests SET status='AWARD_PENDING',version=version+1,updated_at=clock_timestamp() WHERE id=$1`, [setup.requestId]);
-      await event(client, ws.id, setup.requestId, "EVALUATION_COMPLETED", "agent", "真实 DeepSeek 报价评估完成", { evaluationNo: setup.evaluationNo, quoteCount: scored.length });
+      await event(client, ws.id, setup.requestId, "EVALUATION_COMPLETED", "agent", "模型报价评估完成", { evaluationNo: setup.evaluationNo, quoteCount: scored.length });
       await bumpRevision(client, ws.id);
     });
     saveActionId = null;
@@ -1462,10 +1462,8 @@ async function insertSupplierQuoteVersion(
   const existing = (await client.query<{ id: string; quote_no: string; current_version: number }>(`
     SELECT id,quote_no,current_version FROM quotes WHERE invitation_id=$1 FOR UPDATE
   `, [context.invitationId])).rows[0];
-  if (existing && (context.supplierType !== "EXTERNAL" || existing.current_version >= 2 || options.simulated)) {
-    throw new ApiError("QUOTE_ALREADY_SUBMITTED", context.supplierType === "EXTERNAL"
-      ? "该外部供应商已用完唯一一次重新报价机会"
-      : "内部供应商报价提交后不可修改", 409);
+  if (existing && (existing.current_version >= 2 || options.simulated)) {
+    throw new ApiError("QUOTE_ALREADY_SUBMITTED", "该供应商已用完唯一一次重新报价机会", 409);
   }
   const quoteId = existing?.id ?? crypto.randomUUID();
   const quoteNo = existing?.quote_no ?? `QT-LIVE-${quoteId.replaceAll("-", "").toUpperCase()}`;
@@ -1473,9 +1471,7 @@ async function insertSupplierQuoteVersion(
   const receiptNo = `RCPT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const payload = { totalAmount: normalizeMoney(parsed.totalAmount), deliveryDays: parsed.deliveryDays, remark: parsed.remark };
   const payloadSha256 = stableHash(payload);
-  const competitiveness = context.supplierType === "EXTERNAL"
-    ? await analyzeQuoteCompetitiveness(client, context.rfqId, existing?.id ?? null, payload, context.requiredDeliveryDays)
-    : null;
+  const competitiveness = await analyzeQuoteCompetitiveness(client, context.rfqId, existing?.id ?? null, payload, context.requiredDeliveryDays);
   const submittedAt = (await one<{ now: Date }>(client, `SELECT clock_timestamp() AS now`)).now;
   if (existing) {
     await client.query(`UPDATE quotes SET current_version=$2,submitted_at=$3,receipt_no=$4,payload_sha256=$5 WHERE id=$1`, [quoteId, version, submittedAt, receiptNo, payloadSha256]);
@@ -1514,7 +1510,7 @@ async function insertSupplierQuoteVersion(
     context.requestId,
     version === 1 ? "QUOTE_SUBMITTED" : "QUOTE_REQUOTED",
     context.supplierNo,
-    version === 1 ? "供应商提交首次报价" : "外部供应商提交唯一一次重新报价",
+    version === 1 ? "供应商提交首次报价" : "供应商提交唯一一次重新报价",
     { rfqNo: context.rfqNo, quoteNo, receiptNo, version, competitiveness, simulated: Boolean(options.simulated) },
   );
   return { quoteNo, receiptNo, submittedAt: submittedAt.toISOString(), version, competitiveness, ...payload };
@@ -1731,7 +1727,6 @@ export async function simulateRemainingQuotes(rfqNo: string) {
 async function ownSupplierQuoteResult(
   db: Pool | PoolClient,
   row: Awaited<ReturnType<typeof supplierRfqRow>>,
-  expectedType: "INTERNAL" | "EXTERNAL",
   rfqNo: string,
 ) {
   const versions = (await db.query<{
@@ -1757,8 +1752,7 @@ async function ownSupplierQuoteResult(
     competitiveness: version.competitiveness,
   }));
   const databaseClock = await one<{ now: Date }>(db, `SELECT clock_timestamp() AS now`);
-  const canRequote = expectedType === "EXTERNAL"
-    && mapped.length === 1
+  const canRequote = mapped.length === 1
     && row.rfq_status === "OPEN"
     && row.deadline_at.getTime() > databaseClock.now.getTime();
   return {
@@ -1791,7 +1785,7 @@ export async function submitSupplierQuoteInTransaction(client: PoolClient, suppl
     viewedAt: row.viewed_at,
   }, parsed);
   await bumpRevision(client, ws.id);
-  return ownSupplierQuoteResult(client, row, expectedType, rfqNo);
+  return ownSupplierQuoteResult(client, row, rfqNo);
 }
 
 export async function submitSupplierQuote(supplierNo: string, expectedType: "INTERNAL" | "EXTERNAL", rfqNo: string, input: z.infer<typeof quoteSchema>) {
@@ -1801,7 +1795,7 @@ export async function submitSupplierQuote(supplierNo: string, expectedType: "INT
 
 export async function getOwnSupplierQuote(supplierNo: string, expectedType: "INTERNAL" | "EXTERNAL", rfqNo: string) {
   const row = await supplierRfqRow(supplierNo, expectedType, rfqNo);
-  return ownSupplierQuoteResult(pool, row, expectedType, rfqNo);
+  return ownSupplierQuoteResult(pool, row, rfqNo);
 }
 
 export async function getAttachment(attachmentId: string, supplier?: { supplierNo: string; type: "INTERNAL" | "EXTERNAL" }) {

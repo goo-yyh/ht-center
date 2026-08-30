@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { quoteInputSchema } from '@/src/lib/quote-schema';
 
-describe('一次性报价输入', () => {
+describe('内部供应商报价输入', () => {
   it('规范化金额、交期和备注', () => {
     expect(quoteInputSchema.parse({ totalAmount: '128000.50', deliveryDays: '15', remark: ' 含税 ' })).toEqual({
       totalAmount: '128000.50', deliveryDays: 15, remark: '含税',

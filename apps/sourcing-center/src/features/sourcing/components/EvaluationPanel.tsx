@@ -96,7 +96,7 @@ export default function EvaluationPanel({ detail, running, submitting, onEvaluat
     return (
       <Space direction="vertical" size={16} className={styles.evaluationStack}>
         {evaluationProcess}
-        {evaluationSummary && <Alert type="info" showIcon message="DeepSeek 评估说明" description={evaluationSummary.content} />}
+        {evaluationSummary && <Alert type="info" showIcon message="模型评估说明" description={evaluationSummary.content} />}
         <Result
           className={styles.prResult}
           status="success"
@@ -211,27 +211,19 @@ export default function EvaluationPanel({ detail, running, submitting, onEvaluat
   return (
     <Space direction="vertical" size={16} className={styles.evaluationStack}>
       {evaluationProcess}
-      {evaluationSummary && <Alert type="info" showIcon message="DeepSeek 评估说明" description={evaluationSummary.content} />}
+      {evaluationSummary && <Alert type="info" showIcon message="模型评估说明" description={evaluationSummary.content} />}
       <Alert
         type="info"
         showIcon
         icon={<TrophyOutlined />}
         message={`Agent 已按“${evaluationStrategyLabel[detail.evaluation.strategy]}”生成报价排名`}
-        description="评分数值由服务端确定性计算，DeepSeek 只生成推荐说明和风险提示；请选择一家供应商创建采购申请。"
+        description="评分数值由服务端确定性计算，模型只生成推荐说明和风险提示；请选择一家供应商创建采购申请。"
       />
       <Card
         title={`报价排名（${detail.evaluation.items.length}）`}
-        extra={detail.status === 'AWARD_PENDING' ? (
-          <Button
-            type="primary"
-            icon={<FileDoneOutlined />}
-            loading={submitting}
-            disabled={!selectedQuoteNo}
-            onClick={confirmCreatePr}
-          >
-            选择一家并创建采购申请 PR
-          </Button>
-        ) : <Tag color="green" icon={<CheckCircleOutlined />}>已完成</Tag>}
+        extra={detail.status === 'AWARD_PENDING'
+          ? null
+          : <Tag color="green" icon={<CheckCircleOutlined />}>已完成</Tag>}
       >
         <div className="mobile-table-scroll">
           <div className="mobile-table-hint" role="note">左右滑动查看完整评估排名</div>
@@ -248,9 +240,23 @@ export default function EvaluationPanel({ detail, running, submitting, onEvaluat
             } : undefined}
           />
         </div>
-        <Paragraph type="secondary" className={styles.tableFootnote}>
-          中选后不可更换；最终 PR 数据由服务端从当前报价重新读取，页面不能篡改供应商、金额或交期。
-        </Paragraph>
+        <div className={styles.evaluationActionFooter} role="group" aria-label="采购申请操作">
+          <Paragraph type="secondary" className={styles.tableFootnote}>
+            中选后不可更换；最终 PR 数据由服务端从当前报价重新读取，页面不能篡改供应商、金额或交期。
+          </Paragraph>
+          {detail.status === 'AWARD_PENDING' && (
+            <Button
+              className={styles.createPrButton}
+              type="primary"
+              icon={<FileDoneOutlined />}
+              loading={submitting}
+              disabled={!selectedQuoteNo}
+              onClick={confirmCreatePr}
+            >
+              选择一家并创建采购申请 PR
+            </Button>
+          )}
+        </div>
       </Card>
     </Space>
   );

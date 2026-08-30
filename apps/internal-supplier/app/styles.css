@@ -309,8 +309,131 @@ body {
   color: #e60012 !important;
 }
 
-.quote-receipt .ant-card-head {
-  color: #246c38;
+.quote-receipt,
+.quote-form-card {
+  border-left: 4px solid var(--ht-color-primary);
+}
+
+.theme-primary-icon {
+  color: var(--ht-color-primary);
+}
+
+.ant-tag.theme-status-tag {
+  color: var(--ht-color-primary);
+  background: rgba(230, 0, 18, 0.06);
+  border-color: rgba(230, 0, 18, 0.28);
+}
+
+.quote-state-alert {
+  margin-bottom: 18px;
+}
+
+.quote-state-alert.ant-alert-success,
+.quote-state-alert.ant-alert-info {
+  background: rgba(230, 0, 18, 0.05);
+  border-color: rgba(230, 0, 18, 0.22);
+}
+
+.quote-state-alert.ant-alert-success .ant-alert-icon,
+.quote-state-alert.ant-alert-info .ant-alert-icon {
+  color: var(--ht-color-primary);
+}
+
+.competitiveness-panel {
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-left-width: 4px;
+  border-radius: 8px;
+}
+
+.competitiveness-heading,
+.quote-history-heading,
+.quote-version-heading,
+.quote-version-values {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.competitiveness-heading {
+  margin-bottom: 8px;
+}
+
+.competitiveness-high {
+  background: rgba(230, 0, 18, 0.04);
+  border-color: rgba(230, 0, 18, 0.2);
+  border-left-color: var(--ht-color-primary);
+}
+
+.competitiveness-medium {
+  background: #fffbe6;
+  border-color: #ffe58f;
+  border-left-color: #faad14;
+}
+
+.competitiveness-low,
+.competitiveness-pending {
+  background: #fafafa;
+  border-color: #d9d9d9;
+  border-left-color: #8c8c8c;
+}
+
+.quote-history {
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid rgba(120, 74, 45, 0.1);
+}
+
+.quote-history-heading {
+  margin-bottom: 12px;
+}
+
+.quote-version-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.quote-version-item {
+  min-width: 0;
+  padding: 14px;
+  background: #fffaf5;
+  border: 1px solid rgba(120, 74, 45, 0.12);
+  border-radius: 8px;
+}
+
+.quote-version-current {
+  background: rgba(230, 0, 18, 0.035);
+  border-color: rgba(230, 0, 18, 0.22);
+}
+
+.quote-current-label {
+  color: var(--ht-color-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.quote-version-values {
+  margin-top: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.quote-version-time {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.quote-version-remark.ant-typography {
+  margin: 9px 0 0;
+  color: #5f514a;
+}
+
+.requote-button {
+  margin-top: 18px;
 }
 
 .receipt-descriptions {
@@ -421,6 +544,16 @@ body {
   .quote-form-grid {
     grid-template-columns: 1fr;
     gap: 0;
+  }
+
+  .quote-version-list {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-history-heading,
+  .quote-version-values {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .attachment-row {

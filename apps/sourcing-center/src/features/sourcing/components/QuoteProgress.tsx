@@ -120,7 +120,7 @@ export default function QuoteProgress({ progress, notifications, serverTime, clo
         showIcon
         icon={<EyeOutlined />}
         message="当前为实时报价阶段"
-        description="采购人员和 Agent 可以查看供应商的最新报价。外部供应商首次报价后可根据竞争力分析再报价一次，表格始终展示最新版本；一键模拟只补齐未提交供应商。"
+        description="采购人员和 Agent 可以查看供应商的最新报价。内外部供应商首次报价后均可根据竞争力分析再报价一次，表格始终展示最新版本；一键模拟只补齐未提交供应商。"
         action={(
           <Space wrap size={8}>
             <Tooltip title="为剩余供应商生成各不相同的有效报价，并按正式流程提交">

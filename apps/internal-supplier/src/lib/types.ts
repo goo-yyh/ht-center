@@ -61,8 +61,16 @@ export interface RfqDetail extends RfqSummary {
   attachments: AttachmentInfo[];
 }
 
-export interface QuoteReceipt extends Omit<QuoteReceiptDto, 'status'> {
+export interface QuoteVersionReceipt extends Omit<QuoteReceiptDto, 'status'> {
   status: string;
+}
+
+export interface QuoteReceipt extends QuoteVersionReceipt {
+  versionCount: number;
+  maxVersions: number;
+  remainingRequotes: number;
+  canRequote: boolean;
+  versions: QuoteVersionReceipt[];
 }
 
 export interface SessionSupplier {

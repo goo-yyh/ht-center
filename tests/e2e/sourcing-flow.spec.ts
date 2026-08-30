@@ -135,16 +135,15 @@ function monitorPageErrors(page: Page, errors: string[]): void {
   page.on('pageerror', (error) => errors.push(`${page.url()}: ${error.message}`));
 }
 
-async function submitInternalQuote(page: Page, amount: string, deliveryDays: string): Promise<void> {
+async function submitInternalQuote(page: Page, amount: string, deliveryDays: string, requote = false): Promise<void> {
   await page.getByLabel('报价总价（元）').fill(amount);
   await page.getByLabel('承诺交期（天）').fill(deliveryDays);
-  await page.getByLabel('报价备注').fill('Playwright 内部供应商正式报价');
-  await page.getByRole('button', { name: '预览并提交报价' }).click();
-  const modal = page.getByRole('dialog', { name: '确认提交正式报价？' });
+  await page.getByLabel('报价备注').fill(requote ? 'Playwright 内部供应商重新报价' : 'Playwright 内部供应商首次报价');
+  await page.getByRole('button', { name: requote ? '预览并确认重新报价' : '预览并提交报价' }).click();
+  const modal = page.getByRole('dialog', { name: requote ? '确认重新报价' : '确认提交正式报价？' });
   await expect(modal).toBeVisible();
-  await modal.getByRole('button', { name: '确认并提交' }).click();
-  await expect(page.getByText('报价提交回执')).toBeVisible();
-  await expect(page.getByText('您的正式报价已经提交')).toBeVisible();
+  await modal.getByRole('button', { name: requote ? '确认并提交重新报价' : '确认并提交' }).click();
+  await expect(page.getByText(requote ? '重新报价提交成功，本次报价已锁定' : '首次报价提交成功，可查看报价竞争力')).toBeVisible();
 }
 
 async function registerExternalSupplier(page: Page): Promise<void> {
@@ -170,7 +169,7 @@ async function submitExternalQuote(page: Page, amount: string, deliveryDays: str
   await expect(page.getByText(requote ? '重新报价提交成功，本次报价已锁定' : '首次报价提交成功，可查看报价竞争力')).toBeVisible();
 }
 
-test('三端完成真实寻源、明文报价与一次重报、评估、单一中选 PR 与统一重置', async ({ browser, request }) => {
+test('三端完成真实寻源、内外供应商竞争力与一次重报、评估、单一中选 PR 与统一重置', async ({ browser, request }) => {
   test.slow();
 
   const health = await readEnvelope<{
@@ -265,11 +264,46 @@ test('三端完成真实寻源、明文报价与一次重报、评估、单一�
     await selectInternalIdentity(internalPage, internalSupplier!.supplierNo);
     await openRfqFromTable(internalPage, rfqNo!);
     await expectAttachmentDownload(internalPage, attachmentName);
+
+    let failNextInternalQuoteRefresh = true;
+    let internalQuotePostSucceeded = false;
+    const internalQuoteRoute = `**/api/rfqs/${rfqNo!}/quote`;
+    internalPage.on('response', (response) => {
+      if (response.url().endsWith(`/api/rfqs/${rfqNo!}/quote`)
+        && response.request().method() === 'POST'
+        && response.ok()) internalQuotePostSucceeded = true;
+    });
+    await internalPage.route(internalQuoteRoute, async (route) => {
+      if (internalQuotePostSucceeded && failNextInternalQuoteRefresh && route.request().method() === 'GET') {
+        failNextInternalQuoteRefresh = false;
+        await route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: { code: 'TEMPORARY_REFRESH_FAILURE', message: '模拟报价成功后的临时刷新失败' } }),
+        });
+        return;
+      }
+      await route.continue();
+    });
     await submitInternalQuote(internalPage, '181234.56', '12');
+    await expect(internalPage.getByText('询价详情加载失败')).toBeVisible();
+    await expect(internalPage.getByText('报价详情', { exact: true })).toBeVisible();
+    await expect(internalPage.getByRole('button', { name: '预览并提交报价' })).toHaveCount(0);
+    await internalPage.unroute(internalQuoteRoute);
+    await internalPage.getByRole('button', { name: '刷新' }).click();
+
+    const internalCompetitivenessPanel = internalPage.locator('.competitiveness-panel');
+    await expect(internalCompetitivenessPanel.getByText('报价竞争力', { exact: true })).toBeVisible();
+    await expect(internalCompetitivenessPanel).toContainText(/高|中|低/);
+    await expect(internalPage.getByRole('button', { name: '重新报价（剩余 1 次）' })).toBeVisible();
+    await internalPage.getByRole('button', { name: '重新报价（剩余 1 次）' }).click();
+    await submitInternalQuote(internalPage, '179876.54', '11', true);
+    await expect(internalPage.getByText('重新报价机会已用完')).toBeVisible();
+    await expect(internalPage.getByLabel('报价历史，共 2 版')).toBeVisible();
 
     const duplicateInternal = await internalContext.request.post(`${INTERNAL_BASE}/api/rfqs/${encodeURIComponent(rfqNo!)}/quote`, {
       headers: { 'idempotency-key': idempotencyKey('duplicate-internal') },
-      data: { totalAmount: '180000', deliveryDays: 10, remark: '不应成功的第二次报价' },
+      data: { totalAmount: '178000', deliveryDays: 10, remark: '不应成功的第三次报价' },
     });
     expect(duplicateInternal.status()).toBe(409);
     expect((await duplicateInternal.json()).error.code).toBe('QUOTE_ALREADY_SUBMITTED');
@@ -296,11 +330,11 @@ test('三端完成真实寻源、明文报价与一次重报、评估、单一�
     expect(detail.revealedQuotes ?? []).toHaveLength(2);
     expect(detail.evaluation).toBeNull();
     expect(detail.revealedQuotes).toEqual(expect.arrayContaining([
-      expect.objectContaining({ totalAmount: '181234.56', version: 1 }),
+      expect.objectContaining({ totalAmount: '179876.54', version: 2 }),
       expect.objectContaining({ totalAmount: '175000.00', version: 2 }),
     ]));
     const buyerPayload = JSON.stringify(detail);
-    expect(buyerPayload).toContain('Playwright 内部供应商正式报价');
+    expect(buyerPayload).toContain('Playwright 内部供应商重新报价');
     expect(buyerPayload).toContain('Playwright 外部供应商重新报价');
 
     await buyerPage.getByRole('button', { name: '刷新' }).click();
@@ -308,7 +342,7 @@ test('三端完成真实寻源、明文报价与一次重报、评估、单一�
     await expect(
       buyerPage.locator('.ant-statistic').filter({ hasText: '已提交报价' }).getByText('2', { exact: true }),
     ).toBeVisible();
-    await expect(buyerPage.getByText('¥181,234.56')).toBeVisible();
+    await expect(buyerPage.getByText('¥179,876.54')).toBeVisible();
     await expect(buyerPage.getByText('¥175,000.00')).toBeVisible();
 
     const earlyEvaluation = await request.post(`${BUYER_BASE}/api/demo/v1/rfqs/${encodeURIComponent(rfqNo!)}/evaluations`, {
@@ -349,6 +383,8 @@ test('三端完成真实寻源、明文报价与一次重报、评估、单一�
     detail = await waitForRequestStatus(request, requestNo, 'AWARD_PENDING', 120_000);
     expect(detail.evaluation?.items).toHaveLength(2);
     expect(detail.evaluation!.items.length).toBeLessThanOrEqual(10);
+    expect(detail.evaluation?.items.some((quote) => quote.totalAmount === '179876.54')).toBe(true);
+    expect(detail.evaluation?.items.some((quote) => quote.totalAmount === '181234.56')).toBe(false);
     expect(detail.evaluation?.items.some((quote) => quote.totalAmount === '175000.00')).toBe(true);
     expect(detail.evaluation?.items.some((quote) => quote.totalAmount === '176543.21')).toBe(false);
 

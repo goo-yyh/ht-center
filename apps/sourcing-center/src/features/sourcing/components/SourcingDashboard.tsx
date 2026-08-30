@@ -99,14 +99,14 @@ export default function SourcingDashboard({ dashboard, deepSeekHealth, loading, 
   ];
   const deepSeekState = deepSeekHealth?.state;
   const deepSeekTag = deepSeekState === 'VERIFIED'
-    ? { color: 'success', text: `DeepSeek 实时调用已验证 · ${deepSeekHealth?.model ?? ''}` }
+    ? { color: 'red', text: '模型服务实时调用已验证' }
     : deepSeekState === 'DEGRADED'
-      ? { color: 'error', text: 'DeepSeek 最近一次连接失败' }
+      ? { color: 'error', text: '模型服务最近一次连接失败' }
       : deepSeekState === 'NOT_VERIFIED'
-        ? { color: 'warning', text: 'DeepSeek 已配置，尚未完成实时调用' }
+        ? { color: 'warning', text: '模型服务已配置，尚未完成实时调用' }
         : deepSeekState === 'UNCONFIGURED'
-          ? { color: 'error', text: 'DeepSeek 未配置' }
-          : { color: 'default', text: '正在读取 DeepSeek 状态' };
+          ? { color: 'error', text: '模型服务未配置' }
+          : { color: 'default', text: '正在读取模型服务状态' };
 
   return (
     <Space direction="vertical" size={18} className={styles.pageStack}>
@@ -117,7 +117,7 @@ export default function SourcingDashboard({ dashboard, deepSeekHealth, loading, 
             <Title level={2}>从寻源需求到采购申请，一页完成智能闭环</Title>
             <Tag color={deepSeekTag.color} icon={<SafetyCertificateOutlined />}>{deepSeekTag.text}</Tag>
             <Paragraph>
-              DeepSeek Agent 基于共享数据库中的内部资源湖与外部来源标识筛选候选供应商，并持续汇总报价版本与竞争力供采购人员决策。
+              寻源 Agent 基于共享数据库中的内部资源湖与外部来源标识筛选候选供应商，并持续汇总报价版本与竞争力供采购人员决策。
             </Paragraph>
           </div>
           <Space wrap>

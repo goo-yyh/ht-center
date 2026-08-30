@@ -292,10 +292,10 @@ describe("海天寻源核心后端", () => {
     const workspaceBefore = (await pool.query<{ id: string; revision: string }>(`SELECT id,revision::text FROM demo_workspaces WHERE code='DEMO-DEFAULT'`)).rows[0];
     const legacy = (await pool.query<{
       id: string; workspace_id: string; rfq_id: string; supplier_id: string; submitted_at: Date; payload_sha256: string;
-      total_amount: string; delivery_days: number; remark: string;
+      total_amount: string; delivery_days: number; remark: string; competitiveness: string;
     }>(`
       SELECT quote.id,quote.workspace_id,quote.rfq_id,quote.supplier_id,quote.submitted_at,quote.payload_sha256,
-             version.total_amount::text,version.delivery_days,version.remark
+             version.total_amount::text,version.delivery_days,version.remark,version.competitiveness
         FROM quotes quote JOIN quote_versions version ON version.quote_id=quote.id AND version.version_no=1
         JOIN rfqs rfq ON rfq.id=quote.rfq_id
        WHERE rfq.rfq_no='RFQ-DEMO-0002'
@@ -311,8 +311,8 @@ describe("海天寻源核心后端", () => {
     expect(second.initialized).toBe(false);
     const workspaceAfter = (await pool.query<{ id: string; revision: string }>(`SELECT id,revision::text FROM demo_workspaces WHERE code='DEMO-DEFAULT'`)).rows[0];
     expect(workspaceAfter).toEqual(workspaceBefore);
-    const restored = await pool.query(`SELECT total_amount::text,delivery_days,remark FROM quote_versions WHERE quote_id=$1 ORDER BY version_no`, [legacy.id]);
-    expect(restored.rows).toEqual([{ total_amount: legacy.total_amount, delivery_days: legacy.delivery_days, remark: legacy.remark }]);
+    const restored = await pool.query(`SELECT total_amount::text,delivery_days,remark,competitiveness FROM quote_versions WHERE quote_id=$1 ORDER BY version_no`, [legacy.id]);
+    expect(restored.rows).toEqual([{ total_amount: legacy.total_amount, delivery_days: legacy.delivery_days, remark: legacy.remark, competitiveness: legacy.competitiveness }]);
   });
 
   it("数据库已迁移但工作区不存在时可以通过幂等初始化原子创建完整基线", async () => {
@@ -537,7 +537,7 @@ describe("海天寻源核心后端", () => {
       expect(completed.status).toBe(before.status);
       expect(completed.activeSourcingAgentRun).toBeNull();
       expect(completed.latestSourcingAgentRun).toMatchObject({ status: "SUCCEEDED", model: "deepseek-v4-flash", isSeeded: false });
-      expect(completed.agentMessages.at(-1)?.content).toBe("海天寻源 Agent，本轮由 DeepSeek API 的 deepseek-v4-flash 模型提供能力。");
+      expect(completed.agentMessages.at(-1)?.content).toBe("海天寻源 Agent，本轮由已配置的模型服务提供能力。");
       expect(completed.candidates.map((candidate) => candidate.supplierNo)).toEqual(before.candidates.map((candidate) => candidate.supplierNo));
       expect(completed.candidateSourcingAgentRunId).toBe(before.candidateSourcingAgentRunId);
       expect(completed.candidateSourcingAgentRunId).not.toBe(completed.latestSourcingAgentRun?.id);
@@ -769,11 +769,26 @@ describe("海天寻源核心后端", () => {
       .rejects.toMatchObject({ code: "QUOTE_ALREADY_SUBMITTED" } satisfies Partial<ApiError>);
   });
 
-  it("内部供应商仍只能提交一版报价", async () => {
+  it("内部供应商首次报价后可看竞争力并且仅能重新报价一次", async () => {
     const first = await submitSupplierQuote("INT-SUP-DEMO-003", "INTERNAL", "RFQ-DEMO-0002", { totalAmount: "127000.00", deliveryDays: 12, remark: "内部首次" });
-    expect(first).toMatchObject({ sealed: false, canRequote: false, remainingRequotes: 0 });
-    expect(first.quote).toMatchObject({ version: 1, competitiveness: null });
-    await expect(submitSupplierQuote("INT-SUP-DEMO-003", "INTERNAL", "RFQ-DEMO-0002", { totalAmount: "126000.00", deliveryDays: 11, remark: "内部二次" }))
+    expect(first).toMatchObject({ sealed: false, editable: true, canRequote: true, remainingRequotes: 1 });
+    expect(first.quote).toMatchObject({ totalAmount: "127000.00", version: 1, competitiveness: "MEDIUM" });
+    const second = await submitSupplierQuote("INT-SUP-DEMO-003", "INTERNAL", "RFQ-DEMO-0002", { totalAmount: "119000.00", deliveryDays: 11, remark: "内部唯一一次重新报价" });
+    expect(second).toMatchObject({ sealed: false, editable: false, canRequote: false, remainingRequotes: 0 });
+    expect(second.quote).toMatchObject({ totalAmount: "119000.00", version: 2, competitiveness: "HIGH" });
+    expect(second.versions).toMatchObject([
+      { version: 1, totalAmount: "127000.00", competitiveness: "MEDIUM", remark: "内部首次" },
+      { version: 2, totalAmount: "119000.00", competitiveness: "HIGH", remark: "内部唯一一次重新报价" },
+    ]);
+    const rfq = await getSupplierRfq("INT-SUP-DEMO-003", "INTERNAL", "RFQ-DEMO-0002");
+    expect(rfq.quoteReceipt).toMatchObject({ totalAmount: "119000.00", version: 2, competitiveness: "HIGH" });
+    const requoteEvent = (await pool.query<{ summary: string; version: number; competitiveness: string }>(`
+      SELECT event.summary,(event.event_data->>'version')::int AS version,event.event_data->>'competitiveness' AS competitiveness
+        FROM workflow_events event
+       WHERE event.actor='INT-SUP-DEMO-003' AND event.event_type='QUOTE_REQUOTED'
+       ORDER BY event.created_at DESC,event.id DESC LIMIT 1`)).rows[0];
+    expect(requoteEvent).toEqual({ summary: "供应商提交唯一一次重新报价", version: 2, competitiveness: "HIGH" });
+    await expect(submitSupplierQuote("INT-SUP-DEMO-003", "INTERNAL", "RFQ-DEMO-0002", { totalAmount: "118000.00", deliveryDays: 10, remark: "内部第三次" }))
       .rejects.toMatchObject({ code: "QUOTE_ALREADY_SUBMITTED" } satisfies Partial<ApiError>);
   });
 
@@ -789,10 +804,10 @@ describe("海天寻源核心后端", () => {
 
     const rows = (await pool.query<{
       quote_no: string; supplier_no: string; is_seeded: boolean; is_simulated: boolean;
-      payload_sha256: string; total_amount: string; delivery_days: number; remark: string; version_no: number;
+      payload_sha256: string; total_amount: string; delivery_days: number; remark: string; version_no: number; competitiveness: string;
     }>(`
       SELECT q.quote_no,s.supplier_no,q.is_seeded,version.is_simulated,version.payload_sha256,
-             version.total_amount::text,version.delivery_days,version.remark,version.version_no
+             version.total_amount::text,version.delivery_days,version.remark,version.version_no,version.competitiveness
         FROM quotes q JOIN rfqs r ON r.id=q.rfq_id JOIN suppliers s ON s.id=q.supplier_id
         JOIN quote_versions version ON version.quote_id=q.id AND version.version_no=q.current_version
        WHERE r.rfq_no='RFQ-DEMO-0002' ORDER BY version.submitted_at,q.id`)).rows;
@@ -803,6 +818,7 @@ describe("海天寻源核心后端", () => {
     expect(new Set(simulated.map((row) => row.total_amount)).size).toBe(4);
     expect(new Set(simulated.map((row) => row.remark)).size).toBe(4);
     expect(new Set(simulated.map((row) => row.payload_sha256)).size).toBe(4);
+    expect(simulated.every((row) => ["HIGH", "MEDIUM", "LOW"].includes(row.competitiveness))).toBe(true);
     simulated.forEach((row) => expect(quoteSchema.safeParse({ totalAmount: row.total_amount, deliveryDays: row.delivery_days, remark: row.remark }).success).toBe(true));
     const managementSnapshot = JSON.stringify(result.detail);
     simulated.forEach((row) => {
@@ -821,6 +837,11 @@ describe("海天寻源核心后端", () => {
     const ownQuote = await getOwnSupplierQuote("EXT-SUP-DEMO-004", "EXTERNAL", "RFQ-DEMO-0002");
     expect(ownQuote).toMatchObject({ canRequote: true, remainingRequotes: 1 });
     expect(simulated.some((row) => row.total_amount === ownQuote.quote.totalAmount && row.remark === ownQuote.quote.remark)).toBe(true);
+    const internalSimulated = simulated.find((row) => row.supplier_no.startsWith("INT-"));
+    expect(internalSimulated).toBeDefined();
+    const internalOwnQuote = await getOwnSupplierQuote(internalSimulated!.supplier_no, "INTERNAL", "RFQ-DEMO-0002");
+    expect(internalOwnQuote).toMatchObject({ canRequote: true, remainingRequotes: 1 });
+    expect(internalOwnQuote.quote.competitiveness).toBe(internalSimulated!.competitiveness);
 
     const afterExisting = (await pool.query<{ quote_no: string; payload_sha256: string }>(`
       SELECT q.quote_no,q.payload_sha256
@@ -1051,6 +1072,30 @@ describe("海天寻源核心后端", () => {
     expect((await pool.query(`SELECT count(*)::int AS count FROM quote_versions version JOIN quotes quote ON quote.id=version.quote_id JOIN suppliers supplier ON supplier.id=quote.supplier_id WHERE supplier.supplier_no='EXT-SUP-DEMO-004' AND quote.rfq_id=(SELECT id FROM rfqs WHERE rfq_no='RFQ-DEMO-0002')`)).rows[0].count).toBe(1);
   });
 
+  it("内部供应商并发重新报价时只接受一个 V2", async () => {
+    await submitSupplierQuote("INT-SUP-DEMO-003", "INTERNAL", "RFQ-DEMO-0002", { totalAmount: "127000.00", deliveryDays: 12, remark: "内部并发测试 V1" });
+    const scope = "/internal/rfqs/RFQ-DEMO-0002/quotes";
+    const invoke = (key: string, input: { totalAmount: string; deliveryDays: number; remark: string }) => withIdempotency(
+      scope,
+      "INT-SUP-DEMO-003",
+      key,
+      input,
+      (client) => submitSupplierQuoteInTransaction(client!, "INT-SUP-DEMO-003", "INTERNAL", "RFQ-DEMO-0002", input),
+      { sealResponse: true, workInTransaction: true },
+    );
+    const results = await Promise.allSettled([
+      invoke("internal-requote-concurrent-a", { totalAmount: "119000.00", deliveryDays: 11, remark: "内部并发 V2-A" }),
+      invoke("internal-requote-concurrent-b", { totalAmount: "120000.00", deliveryDays: 10, remark: "内部并发 V2-B" }),
+    ]);
+    const fulfilled = results.filter((result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof submitSupplierQuoteInTransaction>>> => result.status === "fulfilled");
+    const rejected = results.filter((result): result is PromiseRejectedResult => result.status === "rejected");
+    expect(fulfilled).toHaveLength(1);
+    expect(fulfilled[0].value).toMatchObject({ canRequote: false, remainingRequotes: 0, quote: { version: 2 } });
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toMatchObject({ code: "QUOTE_ALREADY_SUBMITTED" } satisfies Partial<ApiError>);
+    expect((await pool.query(`SELECT count(*)::int AS count FROM quote_versions version JOIN quotes quote ON quote.id=version.quote_id JOIN suppliers supplier ON supplier.id=quote.supplier_id WHERE supplier.supplier_no='INT-SUP-DEMO-003' AND quote.rfq_id=(SELECT id FROM rfqs WHERE rfq_no='RFQ-DEMO-0002')`)).rows[0].count).toBe(2);
+  });
+
   it("同一幂等 Key 的并发请求只执行业务逻辑一次", async () => {
     let executions = 0;
     const work = async () => {
@@ -1233,6 +1278,26 @@ describe("海天寻源核心后端", () => {
     }
   });
 
+  it("报价评估和采购申请只使用内部供应商的最新版本", async () => {
+    await submitSupplierQuote("INT-SUP-DEMO-003", "INTERNAL", "RFQ-DEMO-0002", { totalAmount: "140000.00", deliveryDays: 15, remark: "内部旧版" });
+    const latest = await submitSupplierQuote("INT-SUP-DEMO-003", "INTERNAL", "RFQ-DEMO-0002", { totalAmount: "110000.00", deliveryDays: 10, remark: "内部最新版" });
+    await closeRfq("RFQ-DEMO-0002", "EARLY_STOP");
+    let capturedInput: unknown;
+    const describeSpy = vi.spyOn(deepseek, "describeEvaluation").mockImplementation(async (input) => {
+      capturedInput = input;
+      return successfulEvaluationDescription(input);
+    });
+    try {
+      const evaluated = await evaluateRfq("RFQ-DEMO-0002");
+      expect((capturedInput as { ranking: Array<{ quoteNo: string; totalAmount: string }> }).ranking.find((quote) => quote.quoteNo === latest.quote.quoteNo)?.totalAmount).toBe("110000.00");
+      expect(evaluated.evaluation?.items.find((quote) => quote.quoteNo === latest.quote.quoteNo)).toMatchObject({ totalAmount: "110000.00", version: 2 });
+      const completed = await createPurchaseRequisition("SR-DEMO-0002", { quoteNo: latest.quote.quoteNo });
+      expect(completed.purchaseRequisition).toMatchObject({ quoteNo: latest.quote.quoteNo, totalAmount: "110000.00", deliveryDays: 10 });
+    } finally {
+      describeSpy.mockRestore();
+    }
+  });
+
   it("评估结果和采购申请固定使用评估时的具体报价版本", async () => {
     await closeRfq("RFQ-DEMO-0002", "EARLY_STOP");
     const describeSpy = vi.spyOn(deepseek, "describeEvaluation").mockImplementation(async (input) => successfulEvaluationDescription(input));
@@ -1318,7 +1383,7 @@ describe("海天寻源核心后端", () => {
         "SAVE_EVALUATION_RANKING",
       ]);
       expect(completedActions.every((action) => action.status === "SUCCEEDED" && action.finishedAt)).toBe(true);
-      expect(completed.agentMessages.find((message) => message.agentRunId === completed.latestEvaluationAgentRun!.id)?.content).toBe("DeepSeek 已完成 Top 2 报价的关注点分析；最终排名、分数和比较结论均由服务端确定性计算。");
+      expect(completed.agentMessages.find((message) => message.agentRunId === completed.latestEvaluationAgentRun!.id)?.content).toBe("模型已完成 Top 2 报价的关注点分析；最终排名、分数和比较结论均由服务端确定性计算。");
     } finally {
       describeSpy.mockRestore();
     }

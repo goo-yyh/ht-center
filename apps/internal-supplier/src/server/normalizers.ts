@@ -4,6 +4,7 @@ import type {
   AttachmentInfo,
   DemoSupplier,
   QuoteReceipt,
+  QuoteVersionReceipt,
   RfqDetail,
   RfqStatus,
   RfqSummary,
@@ -39,6 +40,14 @@ function numberValue(source: unknown, paths: string[][]): number | undefined {
   if (value === undefined) return undefined;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function booleanValue(source: unknown, paths: string[][]): boolean | undefined {
+  const value = first(source, paths);
+  if (typeof value === 'boolean') return value;
+  if (value === 'true' || value === 1 || value === '1') return true;
+  if (value === 'false' || value === 0 || value === '0') return false;
+  return undefined;
 }
 
 function optionalText(source: unknown, paths: string[][]): string | undefined {
@@ -174,10 +183,11 @@ export function normalizeRfqDetail(raw: unknown): RfqDetail {
   };
 }
 
-export function normalizeQuoteReceipt(raw: unknown): QuoteReceipt | null {
-  const source = first(raw, [['quote'], ['receipt'], ['myQuote']]) ?? raw;
+function normalizeQuoteVersion(raw: unknown, fallback: unknown): QuoteVersionReceipt | null {
+  const source = record(raw);
+  if (!Object.keys(source).length) return null;
   if (source === null || source === undefined || (typeof source === 'object' && Object.keys(record(source)).length === 0)) return null;
-  const quoteNo = textValue(source, [['quoteNo'], ['number'], ['id']]);
+  const quoteNo = textValue(source, [['quoteNo'], ['number'], ['id']], textValue(fallback, [['quoteNo'], ['number'], ['id']]));
   const totalAmount = textValue(source, [['totalAmount'], ['amount'], ['quotedAmount']]);
   const deliveryDays = numberValue(source, [['deliveryDays'], ['leadTimeDays']]);
   const submittedAt = dateText(source, [['submittedAt'], ['createdAt']]);
@@ -190,7 +200,7 @@ export function normalizeQuoteReceipt(raw: unknown): QuoteReceipt | null {
   return {
     quoteNo,
     receiptNo: optionalText(source, [['receiptNo']]),
-    rfqNo: optionalText(source, [['rfqNo']]),
+    rfqNo: optionalText(source, [['rfqNo']]) ?? optionalText(fallback, [['rfqNo']]),
     totalAmount,
     deliveryDays,
     remark: optionalText(source, [['remark'], ['notes']]),
@@ -198,6 +208,52 @@ export function normalizeQuoteReceipt(raw: unknown): QuoteReceipt | null {
     status: textValue(source, [['status']], 'SUBMITTED'),
     version,
     competitiveness,
+  };
+}
+
+export function normalizeQuoteReceipt(raw: unknown): QuoteReceipt | null {
+  if (raw === null || raw === undefined) return null;
+  const root = record(raw);
+  const source = first(raw, [['quote'], ['receipt'], ['myQuote']]) ?? raw;
+  const current = normalizeQuoteVersion(source, root);
+  if (!current) return null;
+
+  const versionMap = new Map<number, QuoteVersionReceipt>();
+  const rawVersions = Array.isArray(root.versions) ? root.versions : [];
+  for (const rawVersion of rawVersions) {
+    const version = normalizeQuoteVersion(rawVersion, root);
+    if (version) versionMap.set(version.version, version);
+  }
+  versionMap.set(current.version, current);
+  const versions = [...versionMap.values()].sort((left, right) => left.version - right.version);
+  const versionCount = Math.max(
+    current.version,
+    versions.length,
+    numberValue(source, [['versionCount'], ['submissionCount']]) ?? 0,
+    numberValue(root, [['versionCount'], ['submissionCount']]) ?? 0,
+  );
+  const maxVersions = Math.max(
+    2,
+    versionCount,
+    numberValue(root, [['maxVersions'], ['maxQuoteAttempts']]) ?? 0,
+    numberValue(source, [['maxVersions'], ['maxQuoteAttempts']]) ?? 0,
+  );
+  const explicitCanRequote = booleanValue(root, [['canRequote'], ['editable']])
+    ?? booleanValue(source, [['canRequote'], ['editable']]);
+  const remainingRequotes = Math.max(
+    0,
+    numberValue(root, [['remainingRequotes']])
+      ?? numberValue(source, [['remainingRequotes']])
+      ?? (explicitCanRequote === false ? 0 : maxVersions - versionCount),
+  );
+
+  return {
+    ...current,
+    versionCount,
+    maxVersions,
+    remainingRequotes,
+    canRequote: explicitCanRequote ?? remainingRequotes > 0,
+    versions,
   };
 }
 

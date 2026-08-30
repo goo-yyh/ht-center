@@ -165,29 +165,7 @@ export default function SourcingConversation({ detail, running, publishing, onSe
     const externalCount = detail.candidates.length - internalCount;
     return (
       <div ref={candidateResultRef} className={styles.candidateResultWrap}>
-        <Card
-          className={styles.candidateResultCard}
-          title={(
-            <Space size={8} wrap>
-              <CheckCircleOutlined className={styles.resultIcon} />
-              <Text strong>寻源结果</Text>
-              <Tag color="red">{detail.candidates.length} 家候选供应商</Tag>
-              <Tag color="blue">内部 {internalCount} 家</Tag>
-              <Tag color="green">外部 {externalCount} 家</Tag>
-            </Space>
-          )}
-          extra={detail.status === 'SOURCING_READY' ? (
-            <Button
-              type="primary"
-              icon={<ShopOutlined />}
-              disabled={!detail.candidates.length || running || publishing}
-              loading={publishing}
-              onClick={() => void onPublish()}
-            >
-              邀请全部 {detail.candidates.length} 家并发布询价
-            </Button>
-          ) : null}
-        >
+        <Card className={styles.candidateResultCard}>
           <div className="mobile-table-scroll">
             <div className="mobile-table-hint" role="note">左右滑动查看完整候选信息</div>
             <Table<SourcingCandidate>
@@ -198,6 +176,27 @@ export default function SourcingConversation({ detail, running, publishing, onSe
               size="small"
               scroll={{ x: 990 }}
             />
+          </div>
+          <div className={styles.candidateResultFooter} role="group" aria-label="寻源结果操作">
+            <Space size={8} wrap>
+              <CheckCircleOutlined className={styles.resultIcon} />
+              <Text strong>寻源结果</Text>
+              <Tag color="red">{detail.candidates.length} 家候选供应商</Tag>
+              <Tag color="blue">内部 {internalCount} 家</Tag>
+              <Tag color="green">外部 {externalCount} 家</Tag>
+            </Space>
+            {detail.status === 'SOURCING_READY' ? (
+              <Button
+                className={styles.candidatePublishButton}
+                type="primary"
+                icon={<ShopOutlined />}
+                disabled={!detail.candidates.length || running || publishing}
+                loading={publishing}
+                onClick={() => void onPublish()}
+              >
+                邀请全部 {detail.candidates.length} 家并发布询价
+              </Button>
+            ) : null}
           </div>
         </Card>
       </div>

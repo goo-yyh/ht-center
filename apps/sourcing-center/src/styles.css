@@ -21,18 +21,77 @@ body {
   min-width: 0;
 }
 
-.app-sider {
+.app-shell > .ant-layout-sider.app-sider {
   position: sticky;
   top: 0;
+  z-index: 20;
+  align-self: flex-start;
   height: 100vh;
-  overflow: auto;
+  height: 100dvh;
+  overflow: visible;
   background: #fffaf5;
   border-right: 1px solid rgba(120, 74, 45, 0.1);
   box-shadow: 10px 0 30px rgba(71, 45, 32, 0.05);
 }
 
+.app-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.app-sider .brand {
+  flex: none;
+}
+
+.app-sider.ant-layout-sider-collapsed .brand {
+  justify-content: center;
+  padding-inline: 14px;
+}
+
+.app-sider > .ant-layout-sider-children > .ant-menu-root {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
 .app-sider::after {
   display: none;
+}
+
+.sider-collapse-button.ant-btn.ant-btn-icon-only {
+  position: absolute;
+  top: 50%;
+  right: -18px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  color: #e60012;
+  background: #ffffff;
+  border: 1px solid rgba(230, 0, 18, 0.18);
+  border-radius: 50%;
+  box-shadow: 0 6px 18px rgba(70, 43, 30, 0.14);
+  transform: translateY(-50%);
+}
+
+.sider-collapse-button.ant-btn.ant-btn-icon-only .anticon {
+  font-size: 16px;
+}
+
+.sider-collapse-button.ant-btn.ant-btn-icon-only:not(:disabled):hover,
+.sider-collapse-button.ant-btn.ant-btn-icon-only:not(:disabled):focus-visible {
+  color: #ffffff;
+  background: #e60012;
+  border-color: #e60012;
 }
 
 .brand {

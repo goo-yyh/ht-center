@@ -11,13 +11,15 @@ const candidateOutput = z.object({
   })),
 });
 
+const normalizeEvaluationCode = (value: unknown) => typeof value === "string" ? value.trim().toUpperCase() : value;
+
 const evaluationOutput = z.object({
-  summary: z.string().min(1).max(1000),
+  summary: z.string().trim().max(1000).nullish().transform((value) => value || "已完成报价关注点分析。"),
   items: z.array(z.object({
-    quoteNo: z.string(),
-    strengthCode: z.enum(["PRICE", "DELIVERY", "MATCH", "RISK", "BALANCED"]),
-    riskCode: z.enum(["PRICE", "DELIVERY", "MATCH", "RISK", "NONE"]),
-  })),
+    quoteNo: z.string().trim().min(1),
+    strengthCode: z.preprocess(normalizeEvaluationCode, z.enum(["PRICE", "DELIVERY", "MATCH", "RISK", "BALANCED"])),
+    riskCode: z.preprocess(normalizeEvaluationCode, z.enum(["PRICE", "DELIVERY", "MATCH", "RISK", "NONE"])),
+  })).min(1).max(10),
 });
 
 const agentIntentOutput = z.object({
@@ -91,7 +93,7 @@ type CompletionOptions = {
 
 async function requestCompletion(messages: DeepSeekMessage[], options: CompletionOptions = {}): Promise<CompletionResult> {
   if (!env.DEEPSEEK_API_KEY) {
-    throw new ApiError("AGENT_SERVICE_UNAVAILABLE", "尚未配置 DEEPSEEK_API_KEY，不能执行真实 Agent 调用", 503);
+    throw new ApiError("AGENT_SERVICE_UNAVAILABLE", "尚未配置模型服务，不能执行真实 Agent 调用", 503);
   }
   let lastError: unknown;
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -117,14 +119,14 @@ async function requestCompletion(messages: DeepSeekMessage[], options: Completio
       if (!response.ok) {
         const message = await response.text();
         if ([429, 500, 503].includes(response.status) && attempt < 2) {
-          lastError = new Error(`DeepSeek ${response.status}: ${message.slice(0, 200)}`);
+          lastError = new Error(`HTTP ${response.status}: ${message.slice(0, 200)}`);
           continue;
         }
-        throw new ApiError("AGENT_SERVICE_UNAVAILABLE", `DeepSeek 调用失败（${response.status}）`, 503);
+        throw new ApiError("AGENT_SERVICE_UNAVAILABLE", `模型调用失败（${response.status}）`, 503);
       }
       const parsedResponse = completionResponseSchema.safeParse(await response.json());
       if (!parsedResponse.success) {
-        throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 未返回有效消息", 502, parsedResponse.error.issues);
+        throw new ApiError("AGENT_OUTPUT_INVALID", "模型未返回有效消息", 502, parsedResponse.error.issues);
       }
       const json = parsedResponse.data;
       const choice = json.choices[0];
@@ -142,21 +144,56 @@ async function requestCompletion(messages: DeepSeekMessage[], options: Completio
       clearTimeout(timer);
     }
   }
-  throw new ApiError("AGENT_SERVICE_UNAVAILABLE", lastError instanceof Error ? `DeepSeek 暂时不可用：${lastError.message}` : "DeepSeek 暂时不可用", 503);
+  const message = lastError instanceof Error && lastError.name === "AbortError"
+    ? "模型服务请求超时，请稍后重试"
+    : "模型服务暂时不可用，请稍后重试";
+  throw new ApiError("AGENT_SERVICE_UNAVAILABLE", message, 503);
 }
 
-async function requestJson<T>(system: string, user: string, schema: z.ZodType<T>): Promise<DeepSeekResult<T>> {
-  const completion = await requestCompletion(
-    [{ role: "system", content: system }, { role: "user", content: user }],
-    { responseFormat: { type: "json_object" } },
-  );
-  const content = completion.message.content;
-  if (!content) throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 未返回有效 JSON", 502);
-  let parsed: unknown;
-  try { parsed = JSON.parse(content); } catch { throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 返回内容不是合法 JSON", 502); }
-  const validated = schema.safeParse(parsed);
-  if (!validated.success) throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 返回结构未通过校验", 502, validated.error.issues);
-  return { value: validated.data, providerRequestId: completion.providerRequestId, model: completion.model };
+type JsonRequestOptions = {
+  outputAttempts?: number;
+  retryInstruction?: string;
+};
+
+async function requestJson<T>(system: string, user: string, schema: z.ZodType<T>, options: JsonRequestOptions = {}): Promise<DeepSeekResult<T>> {
+  const outputAttempts = Math.min(3, Math.max(1, options.outputAttempts ?? 1));
+  const providerRequestIds: string[] = [];
+  let lastError: ApiError | null = null;
+
+  for (let attempt = 0; attempt < outputAttempts; attempt++) {
+    const retryInstruction = attempt === 0
+      ? ""
+      : `\n上一轮输出未通过程序结构校验。${options.retryInstruction ?? "请逐项核对字段名、字段类型和枚举值后，重新输出完整 JSON。"}`;
+    const completion = await requestCompletion(
+      [{ role: "system", content: `${system}${retryInstruction}` }, { role: "user", content: user }],
+      { responseFormat: { type: "json_object" } },
+    );
+    if (completion.providerRequestId) providerRequestIds.push(completion.providerRequestId);
+    const content = completion.message.content;
+    if (!content) {
+      lastError = new ApiError("AGENT_OUTPUT_INVALID", "模型未返回有效 JSON", 502, { finishReason: completion.finishReason });
+      continue;
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      lastError = new ApiError("AGENT_OUTPUT_INVALID", "模型返回内容不是合法 JSON", 502, { finishReason: completion.finishReason });
+      continue;
+    }
+    const validated = schema.safeParse(parsed);
+    if (validated.success) {
+      return {
+        value: validated.data,
+        providerRequestId: completion.providerRequestId,
+        providerRequestIds,
+        model: completion.model,
+      };
+    }
+    lastError = new ApiError("AGENT_OUTPUT_INVALID", "模型返回结构未通过校验", 502, validated.error.issues);
+  }
+
+  throw lastError ?? new ApiError("AGENT_OUTPUT_INVALID", "模型返回结构未通过校验", 502);
 }
 
 export type SourcingToolName =
@@ -332,28 +369,28 @@ const submitCandidateTool: DeepSeekToolDefinition = {
 };
 
 function parseArguments(raw: string) {
-  try { return JSON.parse(raw) as unknown; } catch { throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 工具参数不是合法 JSON", 502); }
+  try { return JSON.parse(raw) as unknown; } catch { throw new ApiError("AGENT_OUTPUT_INVALID", "模型工具参数不是合法 JSON", 502); }
 }
 
 function parseSourcingToolCall(raw: DeepSeekToolCall, expectedName: SourcingToolName): SourcingToolCall {
   if (!raw.id || raw.type !== "function" || raw.function.name !== expectedName) {
     const actualName = raw.function?.name || "<缺失>";
     const actualType = raw.type || "<缺失>";
-    throw new ApiError("AGENT_OUTPUT_INVALID", `DeepSeek 未按要求调用工具 ${expectedName}（实际名称 ${actualName}，类型 ${actualType}）`, 502);
+    throw new ApiError("AGENT_OUTPUT_INVALID", `模型未按要求调用工具 ${expectedName}（实际名称 ${actualName}，类型 ${actualType}）`, 502);
   }
   const parsed = parseArguments(raw.function.arguments);
   if (expectedName === "check_supplier_qualifications") {
     const result = qualificationArgumentSchema.safeParse(parsed);
-    if (!result.success) throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 资质核验工具参数无效", 502, result.error.issues);
+    if (!result.success) throw new ApiError("AGENT_OUTPUT_INVALID", "模型资质核验工具参数无效", 502, result.error.issues);
     return { id: raw.id, name: expectedName, arguments: result.data };
   }
   if (expectedName === "check_supplier_delivery") {
     const result = deliveryArgumentSchema.safeParse(parsed);
-    if (!result.success) throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 交付核验工具参数无效", 502, result.error.issues);
+    if (!result.success) throw new ApiError("AGENT_OUTPUT_INVALID", "模型交付核验工具参数无效", 502, result.error.issues);
     return { id: raw.id, name: expectedName, arguments: result.data };
   }
   const result = sourceArgumentSchema.safeParse(parsed);
-  if (!result.success) throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 供应商查询工具参数无效", 502, result.error.issues);
+  if (!result.success) throw new ApiError("AGENT_OUTPUT_INVALID", "模型供应商查询工具参数无效", 502, result.error.issues);
   return { id: raw.id, name: expectedName, arguments: result.data };
 }
 
@@ -376,7 +413,7 @@ async function requiredToolTurn(messages: DeepSeekMessage[], tool: DeepSeekToolD
     }
     messages.push({ role: "user", content: `上一次工具调用无效。请重新调用当前步骤指定的 ${tool.function.name}，不要调用其他工具。` });
   }
-  throw new ApiError("AGENT_OUTPUT_INVALID", `DeepSeek 未按要求调用工具 ${tool.function.name}（实际名称 ${lastActualName}，类型 ${lastActualType}）`, 502);
+  throw new ApiError("AGENT_OUTPUT_INVALID", `模型未按要求调用工具 ${tool.function.name}（实际名称 ${lastActualName}，类型 ${lastActualType}）`, 502);
 }
 
 export async function sourceCandidatesWithTools(input: unknown, callbacks: SourcingToolCallbacks) {
@@ -389,6 +426,7 @@ export async function sourceCandidatesWithTools(input: unknown, callbacks: Sourc
         "查询结果只能来自 role=tool 返回的数据；不得增加工具未返回的供应商。",
         "资质与交付核验时必须原样传入上一步返回的全部 supplierNo 和采购条件。",
         "最后必须调用 submit_candidate_recommendations，并对全部最终候选各返回一条推荐与风险说明。",
+        "所有面向用户的总结、推荐和风险说明只称为“模型”，不得出现具体模型、服务商或 API 名称。",
         "不要输出思考过程。",
       ].join("\n"),
     },
@@ -410,18 +448,18 @@ export async function sourceCandidatesWithTools(input: unknown, callbacks: Sourc
     const { completion, call, attemptProviderRequestIds } = await requiredToolTurn(messages, submitCandidateTool);
     providerRequestIds.push(...attemptProviderRequestIds);
     if (call.function.name !== submitCandidateTool.function.name) {
-      throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 未调用最终候选提交工具", 502);
+      throw new ApiError("AGENT_OUTPUT_INVALID", "模型未调用最终候选提交工具", 502);
     }
     const parsed = parseArguments(call.function.arguments);
     const validated = candidateOutput.safeParse(parsed);
-    if (!validated.success) throw new ApiError("AGENT_OUTPUT_INVALID", "DeepSeek 最终候选结构未通过校验", 502, validated.error.issues);
+    if (!validated.success) throw new ApiError("AGENT_OUTPUT_INVALID", "模型最终候选结构未通过校验", 502, validated.error.issues);
     return { value: validated.data, providerRequestId: completion.providerRequestId, providerRequestIds, model: completion.model || model };
   });
 }
 
 export function describeCandidates(input: unknown) {
   return requestJson(
-    "你是企业采购寻源助手。只能评价输入白名单中的供应商，不得新增供应商。必须对输入 candidates 中的每个 supplierNo 恰好返回一项，不得遗漏或重复。输出 JSON：summary 和 candidates；每项包含 supplierNo、recommendation、riskSummary。不要输出思考过程。",
+    "你是企业采购寻源助手。只能评价输入白名单中的供应商，不得新增供应商。必须对输入 candidates 中的每个 supplierNo 恰好返回一项，不得遗漏或重复。输出 JSON：summary 和 candidates；每项包含 supplierNo、recommendation、riskSummary。面向用户的文本只称为“模型”，不得出现具体模型、服务商或 API 名称。不要输出思考过程。",
     JSON.stringify(input),
     candidateOutput,
   );
@@ -437,7 +475,7 @@ export function classifyAgentIntent(input: unknown) {
       "ADJUST_AND_SOURCE：用户要求修改物品、规格、数量、资质、交期、报价时长、评估策略或候选供应商数量后重新寻源；",
       "CONVERSATION：用户问候、询问 Agent 身份、模型、能力、使用方法，或进行不触发寻源的采购相关交流；",
       "OUT_OF_SCOPE：与采购寻源无关的请求。",
-      "answer 是给用户的简短答复。身份或模型问题不要猜测具体模型名称，只说明系统将使用可信运行元数据补充。",
+      "answer 是给用户的简短答复。身份或模型问题不要透露具体模型、服务商或 API 名称，只说明由已配置的模型服务提供能力。",
       "不得在 answer 中编造供应商、修改采购条件或声称已经执行任何尚未执行的业务动作。不要输出思考过程。",
     ].join("\n"),
     JSON.stringify(input),
@@ -452,9 +490,15 @@ export function describeEvaluation(input: unknown) {
       "只为每份报价选择一个最值得关注的优势代码 strengthCode：PRICE、DELIVERY、MATCH、RISK、BALANCED。",
       "再选择一个需要关注的风险代码 riskCode：PRICE、DELIVERY、MATCH、RISK、NONE。",
       "必须严格根据输入的分项得分选择代码，不得自行编写最低价、最快交付等比较性结论。",
-      "输出 JSON：summary 和 items；每项只包含 quoteNo、strengthCode、riskCode。不要输出思考过程。",
+      "必须对输入 ranking 中的每个 quoteNo 恰好返回一项，并原样复制 quoteNo，不得遗漏、重复或增加报价。",
+      "只输出一个 JSON 对象，不要使用 Markdown。结构示例：{\"summary\":\"已完成报价关注点分析\",\"items\":[{\"quoteNo\":\"原样复制输入报价编号\",\"strengthCode\":\"BALANCED\",\"riskCode\":\"NONE\"}]}。",
+      "每项只包含 quoteNo、strengthCode、riskCode。不要输出思考过程。",
     ].join("\n"),
     JSON.stringify(input),
     evaluationOutput,
+    {
+      outputAttempts: 2,
+      retryInstruction: "只输出示例所示 JSON 对象；必须返回全部报价，代码使用指定的大写英文枚举值。",
+    },
   );
 }

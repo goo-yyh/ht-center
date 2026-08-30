@@ -68,13 +68,60 @@ describe('核心 API 容错 DTO 解析', () => {
     expect(detail.deliveryRequirement).toBe('15 天内');
   });
 
-  it('无报价时返回 null，有报价时保留本人报价正文', () => {
+  it('无报价时返回 null，有报价时保留当前版本、竞争力和重新报价机会', () => {
     expect(normalizeQuoteReceipt(null)).toBeNull();
-    expect(normalizeQuoteReceipt({ quote: {
-      quoteNo: 'QUOTE-DEMO-LIVE-001', totalAmount: '128000.00', deliveryDays: 15, remark: '含税含运费', submittedAt: '2026-08-29T06:10:00.000Z',
-      version: 1, competitiveness: null,
-    } })).toEqual(expect.objectContaining({
-      quoteNo: 'QUOTE-DEMO-LIVE-001', totalAmount: '128000.00', deliveryDays: 15, version: 1, competitiveness: null,
-    }));
+    expect(normalizeQuoteReceipt({
+      rfqNo: 'RFQ-DEMO-0002',
+      quote: {
+        quoteNo: 'QUOTE-DEMO-LIVE-001', totalAmount: '128000.00', deliveryDays: 15, remark: '含税含运费', submittedAt: '2026-08-29T06:10:00.000Z',
+        version: 1, competitiveness: 'MEDIUM',
+      },
+      versions: [{
+        quoteNo: 'QUOTE-DEMO-LIVE-001', totalAmount: '128000.00', deliveryDays: 15, remark: '含税含运费', submittedAt: '2026-08-29T06:10:00.000Z',
+        version: 1, competitiveness: 'MEDIUM',
+      }],
+      canRequote: true,
+      remainingRequotes: 1,
+    })).toMatchObject({
+      quoteNo: 'QUOTE-DEMO-LIVE-001',
+      rfqNo: 'RFQ-DEMO-0002',
+      totalAmount: '128000.00',
+      deliveryDays: 15,
+      version: 1,
+      versionCount: 1,
+      maxVersions: 2,
+      competitiveness: 'MEDIUM',
+      canRequote: true,
+      remainingRequotes: 1,
+      versions: [{ version: 1, totalAmount: '128000.00', competitiveness: 'MEDIUM' }],
+    });
+  });
+
+  it('保留两版内部报价历史并在第二版后锁定', () => {
+    const receipt = normalizeQuoteReceipt({
+      rfqNo: 'RFQ-DEMO-0002',
+      quote: {
+        quoteNo: 'QUOTE-DEMO-LIVE-001', totalAmount: '124000.00', deliveryDays: 11, remark: '第二版', submittedAt: '2026-08-29T07:10:00.000Z',
+        version: 2, competitiveness: 'HIGH',
+      },
+      versions: [
+        { quoteNo: 'QUOTE-DEMO-LIVE-001', totalAmount: '128000.00', deliveryDays: 15, remark: '第一版', submittedAt: '2026-08-29T06:10:00.000Z', version: 1, competitiveness: 'MEDIUM' },
+        { quoteNo: 'QUOTE-DEMO-LIVE-001', totalAmount: '124000.00', deliveryDays: 11, remark: '第二版', submittedAt: '2026-08-29T07:10:00.000Z', version: 2, competitiveness: 'HIGH' },
+      ],
+      canRequote: false,
+      remainingRequotes: 0,
+    });
+
+    expect(receipt).toMatchObject({
+      version: 2,
+      versionCount: 2,
+      canRequote: false,
+      remainingRequotes: 0,
+      competitiveness: 'HIGH',
+      versions: [
+        { version: 1, competitiveness: 'MEDIUM' },
+        { version: 2, competitiveness: 'HIGH' },
+      ],
+    });
   });
 });

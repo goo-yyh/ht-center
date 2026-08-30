@@ -90,7 +90,6 @@ export default function AgentProcessCard({ title, actions, run, fullWidth = fals
               <div className={styles.agentProcessBadges}>
                 <Tag bordered={false} color={status.color}>{status.text}</Tag>
                 {(seeded || run?.isSeeded) && <Tag>初始化记录</Tag>}
-                {run?.model && <Tag color="blue">{run.model}</Tag>}
               </div>
             </div>
           </div>

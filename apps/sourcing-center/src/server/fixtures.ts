@@ -251,7 +251,6 @@ async function migrateLegacyQuoteVersions(client: PoolClient) {
            version.delivery_days,sr.required_delivery_days
       FROM quote_versions version
       JOIN quotes q ON q.id=version.quote_id
-      JOIN suppliers s ON s.id=q.supplier_id AND s.supplier_type='EXTERNAL'
       JOIN rfqs r ON r.id=q.rfq_id
       JOIN sourcing_requests sr ON sr.id=r.request_id
      WHERE version.competitiveness IS NULL
@@ -646,10 +645,7 @@ async function seedInTransaction(client: PoolClient, resetAt: Date, revision: nu
       const invitationId = invitationIds.get(supplierNo);
       if (!invitationId) continue;
       const submittedAt = minutesAfter(timeline.firstSubmittedAt!, quoteIndex);
-      const supplierType = suppliers.find((supplier) => supplier.no === supplierNo)?.type;
-      const competitiveness = supplierType === "EXTERNAL"
-        ? quoteCompetitiveness(payload, seededQuotes.filter(([otherNo]) => otherNo !== supplierNo).map(([, other]) => other), fixture.delivery)
-        : null;
+      const competitiveness = quoteCompetitiveness(payload, seededQuotes.filter(([otherNo]) => otherNo !== supplierNo).map(([, other]) => other), fixture.delivery);
       const quote = await insertQuote(client, ws.id, rfq.id, invitationId, supplierIds.get(supplierNo)!, `QT-DEMO-${String(seededQuoteIndex++).padStart(4, "0")}`, payload, submittedAt, competitiveness);
       quoteRows.push({ quoteId: quote.quoteId, quoteVersionId: quote.quoteVersionId, supplierNo, payload, submittedAt: quote.submittedAt });
     }
@@ -680,8 +676,8 @@ async function seedInTransaction(client: PoolClient, resetAt: Date, revision: nu
         ["CALCULATE_DELIVERY_SCORE", `已按 ${fixture.delivery} 天交付要求完成交期评分`],
         ["CALCULATE_MATCH_RISK_SCORE", `已完成 ${quoteRows.length} 家供应商的匹配度与履约风险量化`],
         ["APPLY_EVALUATION_WEIGHTS", `已按“${fixture.strategy}”策略生成 Top ${scored.length}`],
-        ["ANALYZE_EVALUATION_WITH_DEEPSEEK", `DeepSeek 已生成 ${scored.length} 份推荐与风险说明`],
-        ["VALIDATE_EVALUATION_OUTPUT", `DeepSeek 输出与 Top ${scored.length} 报价白名单完全一致`],
+        ["ANALYZE_EVALUATION_WITH_DEEPSEEK", `模型已生成 ${scored.length} 份推荐与风险说明`],
+        ["VALIDATE_EVALUATION_OUTPUT", `模型输出与 Top ${scored.length} 报价白名单完全一致`],
         ["SAVE_EVALUATION_RANKING", `已保存 Top ${scored.length} 报价、Agent 建议和分项得分`],
       ] as const;
       const evaluationStart = timeline.evaluationStartedAt!.getTime();

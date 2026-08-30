@@ -8,9 +8,9 @@
 - 服务端校验身份后签发 HMAC 签名的 HttpOnly Cookie。
 - 只展示当前供应商受邀的 RFQ。
 - 查看采购要求并通过受邀校验下载同一份采购附件。
-- 预览并二次确认后提交一次正式报价。
-- 提交后只展示本供应商自己的报价回执和正文。
-- 不提供报价修改、撤回、删除或再次提交入口。
+- 预览并二次确认后提交首版正式报价。
+- 首次报价后展示本供应商的报价正文、竞争力分析和剩余机会。
+- 截止前允许重新报价一次，第二版新增历史版本并锁定，首版不覆盖。
 - 每 5 秒刷新详情和工作区 revision，写入后立即重新读取。
 
 ## 本地启动
@@ -53,7 +53,7 @@ BFF 通过 `x-demo-service-token`（同时兼容 Bearer）调用核心 API；已
 
 JSON 成功响应使用 `{ data, meta }`，其中 `meta` 建议包含 `workspaceCode`、`revision`、`serverTime` 和 `requestId`。BFF 对列表容器及少量字段别名做了容错，但输出给页面的是固定且裁剪过的 DTO。错误响应使用 `{ error: { code, message, requestId? } }`。
 
-附件接口需要保留 `Content-Type`、`Content-Length` 和 `Content-Disposition: attachment`。报价接口必须由核心服务执行受邀校验、RFQ 状态与数据库时间校验、内部供应商一次报价限制和幂等处理。
+附件接口需要保留 `Content-Type`、`Content-Length` 和 `Content-Disposition: attachment`。报价接口必须由核心服务执行受邀校验、RFQ 状态与数据库时间校验、最多两版限制、竞争力分析和幂等处理。
 
 ## 验证
 
@@ -66,4 +66,4 @@ npm run build
 
 也可以一次执行 `npm run verify`。BFF 健康检查地址为 `GET /api/health`。
 
-当前项目的自动化测试覆盖：签名会话防篡改和过期、核心服务身份头、核心 DTO 容错裁剪、报价金额与交期校验。跨数据库的一次报价限制、报价版本、附件 checksum 和重置流程由 `haitian` 核心服务集成测试与跨应用 E2E 验证。
+当前项目的自动化测试覆盖：签名会话防篡改和过期、核心服务身份头、核心 DTO 容错裁剪、报价版本与竞争力、报价金额与交期校验。跨数据库的两版上限、并发重报、附件 checksum 和重置流程由核心服务集成测试与跨应用 E2E 验证。

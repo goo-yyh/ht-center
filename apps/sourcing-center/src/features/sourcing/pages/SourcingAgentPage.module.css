@@ -471,12 +471,22 @@
   box-shadow: 0 10px 24px rgba(70, 43, 30, 0.06);
 }
 
-.candidateResultCard.candidateResultCard :global(.ant-card-head) {
-  background: linear-gradient(90deg, rgba(47, 143, 70, 0.06), #fff);
-}
-
 .candidateResultCard.candidateResultCard :global(.ant-card-body) {
   padding: 0;
+}
+
+.candidateResultFooter {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(90deg, rgba(47, 143, 70, 0.06), #fff);
+  border-top: 1px solid rgba(47, 143, 70, 0.14);
+}
+
+.candidatePublishButton {
+  flex: none;
 }
 
 @media (min-width: 721px) {
@@ -518,7 +528,21 @@
 }
 
 .tableFootnote {
-  margin: 16px 0 0;
+  margin: 0;
+}
+
+.evaluationActionFooter {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(230, 0, 18, 0.12);
+}
+
+.createPrButton {
+  flex: none;
 }
 
 .scoreDetailButton {
@@ -708,6 +732,25 @@
 
   .conversationCard.conversationCard > :global(.ant-card-body) {
     min-height: 0;
+  }
+
+  .candidateResultFooter {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+  }
+
+  .candidatePublishButton {
+    width: 100%;
+  }
+
+  .evaluationActionFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .createPrButton {
+    width: 100%;
   }
 }
 

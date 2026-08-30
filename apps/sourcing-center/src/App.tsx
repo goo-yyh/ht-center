@@ -25,7 +25,9 @@ import {
   CustomerServiceOutlined,
   LineChartOutlined,
   LogoutOutlined,
+  MenuFoldOutlined,
   MenuOutlined,
+  MenuUnfoldOutlined,
   PlusOutlined,
   RobotOutlined,
   SafetyCertificateOutlined,
@@ -2040,7 +2042,14 @@ function AppShell() {
 
   return (
     <Layout className="app-shell">
-      <Sider width={252} collapsed={collapsed} collapsible onCollapse={setCollapsed} className="app-sider">
+      <Sider
+        width={252}
+        collapsed={collapsed}
+        collapsible
+        trigger={null}
+        onCollapse={setCollapsed}
+        className="app-sider"
+      >
         <div className="brand">
           <div className="brand-mark">
             <span>塑机</span>
@@ -2058,6 +2067,14 @@ function AppShell() {
           defaultOpenKeys={['poolGroup', 'platformGroup', 'agentsGroup']}
           items={menuItems}
           onClick={handleMenuClick}
+        />
+        <Button
+          type="text"
+          shape="circle"
+          className="sider-collapse-button"
+          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          aria-label={collapsed ? '展开左侧菜单' : '收起左侧菜单'}
+          onClick={() => setCollapsed((current) => !current)}
         />
       </Sider>
 

@@ -69,14 +69,14 @@ export function IdentitySelector({ initialSuppliers, initialSession, initialErro
             <Tag color="red">内部供应商入口</Tag>
             <Typography.Title level={1}>查看受邀询价并提交正式报价</Typography.Title>
             <Typography.Paragraph>
-              请选择一个预置内部供应商身份。进入后只会看到该供应商已受邀的采购询价，正式报价一经提交不可修改或撤回。
+              请选择一个预置内部供应商身份。进入后只会看到该供应商已受邀的采购询价，首次报价后可根据竞争力分析重新报价一次。
             </Typography.Paragraph>
           </div>
           <div className="security-panel">
             <SafetyCertificateOutlined />
             <div>
-              <Typography.Text strong>每个询价一次正式报价</Typography.Text>
-              <Typography.Text>采购人员和寻源 Agent 会实时查看报价，请在提交前确认金额、交期与备注。</Typography.Text>
+              <Typography.Text strong>每个询价最多两版报价</Typography.Text>
+              <Typography.Text>首次报价后展示竞争力并保留一次重新报价机会，第二次提交后锁定。</Typography.Text>
             </div>
           </div>
         </section>

@@ -100,7 +100,7 @@ export function RfqDetailView({ rfqNo, initialSession, initialDetail, initialRec
                   <Typography.Title level={2}>{detail.itemName}</Typography.Title>
                   <Typography.Text type="secondary">采购需求：{detail.requestNo ?? '—'}</Typography.Text>
                 </div>
-                <div className="quote-policy-badge"><FileDoneOutlined /><span>一次正式报价</span></div>
+                <div className="quote-policy-badge"><FileDoneOutlined /><span>首次报价后可再报价一次</span></div>
               </div>
               <Divider />
               <Descriptions column={{ xs: 1, sm: 2, lg: 3 }}>
@@ -134,7 +134,15 @@ export function RfqDetailView({ rfqNo, initialSession, initialDetail, initialRec
               )}
             </Card>
 
-            <QuotePanel rfqNo={detail.rfqNo} isOpen={detail.status === 'OPEN'} receipt={receipt} onSubmitted={() => load(true)} />
+            <QuotePanel
+              rfqNo={detail.rfqNo}
+              isOpen={detail.status === 'OPEN'}
+              receipt={receipt}
+              onSubmitted={(submittedReceipt) => {
+                if (submittedReceipt) setReceipt(submittedReceipt);
+                return load(true);
+              }}
+            />
             <Typography.Text className="revision-line" type="secondary">每 5 秒自动刷新{meta?.revision !== undefined ? ` · 数据版本 ${meta.revision}` : ''}</Typography.Text>
           </div>
         ) : null}

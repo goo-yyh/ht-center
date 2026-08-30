@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  describeEvaluation,
   sourceCandidatesWithTools,
   type SourcingToolCall,
   type SourcingToolExecutionResult,
@@ -20,6 +21,14 @@ type CompletionRequest = {
 
 const originalApiKey = env.DEEPSEEK_API_KEY;
 
+function completion(id: string, content: string) {
+  return new Response(JSON.stringify({
+    id,
+    model: "evaluation-output-test",
+    choices: [{ finish_reason: "stop", message: { content } }],
+  }), { status: 200, headers: { "content-type": "application/json" } });
+}
+
 afterEach(() => {
   env.DEEPSEEK_API_KEY = originalApiKey;
   vi.unstubAllGlobals();
@@ -27,6 +36,63 @@ afterEach(() => {
 });
 
 describe("DeepSeek 寻源工具协议", () => {
+  it("评估结果缺少未使用的摘要时直接补充默认值", async () => {
+    env.DEEPSEEK_API_KEY = "test-deepseek-key";
+    const fetchMock = vi.fn().mockResolvedValue(completion("provider-without-summary", JSON.stringify({
+      rfqNo: "RFQ-TEST-001",
+      strategy: "BALANCED",
+      items: [{ quoteNo: "QT-TEST-001", strengthCode: "PRICE", riskCode: "NONE" }],
+    })));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await describeEvaluation({ ranking: [{ quoteNo: "QT-TEST-001" }] });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result.value).toEqual({
+      summary: "已完成报价关注点分析。",
+      items: [{ quoteNo: "QT-TEST-001", strengthCode: "PRICE", riskCode: "NONE" }],
+    });
+  });
+
+  it("评估模型首轮结构不合法时自动纠正并重试", async () => {
+    env.DEEPSEEK_API_KEY = "test-deepseek-key";
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(completion("provider-invalid", JSON.stringify({
+        summary: "",
+        items: [{ quoteNo: "QT-TEST-001", strengthCode: "UNKNOWN", riskCode: "NONE" }],
+      })))
+      .mockResolvedValueOnce(completion("provider-repaired", JSON.stringify({
+        items: [{ quoteNo: " QT-TEST-001 ", strengthCode: "price", riskCode: " none " }],
+      })));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await describeEvaluation({ ranking: [{ quoteNo: "QT-TEST-001" }] });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result).toMatchObject({
+      value: {
+        summary: "已完成报价关注点分析。",
+        items: [{ quoteNo: "QT-TEST-001", strengthCode: "PRICE", riskCode: "NONE" }],
+      },
+      providerRequestId: "provider-repaired",
+      providerRequestIds: ["provider-invalid", "provider-repaired"],
+    });
+    const repairedRequest = JSON.parse(String(fetchMock.mock.calls[1][1]?.body)) as { messages: Array<{ content: string }> };
+    expect(repairedRequest.messages[0].content).toContain("上一轮输出未通过程序结构校验");
+  });
+
+  it("评估模型连续返回非法枚举时仍然拒绝结果", async () => {
+    env.DEEPSEEK_API_KEY = "test-deepseek-key";
+    const fetchMock = vi.fn().mockImplementation(async () => completion("provider-invalid", JSON.stringify({
+      items: [{ quoteNo: "QT-TEST-001", strengthCode: "价格", riskCode: "无" }],
+    })));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(describeEvaluation({ ranking: [{ quoteNo: "QT-TEST-001" }] }))
+      .rejects.toMatchObject({ code: "AGENT_OUTPUT_INVALID", message: "模型返回结构未通过校验" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("拒绝臆造工具并重试，随后按 assistant/tool 协议完成全部步骤", async () => {
     env.DEEPSEEK_API_KEY = "test-deepseek-key";
     const requests: CompletionRequest[] = [];
